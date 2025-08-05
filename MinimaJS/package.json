@@ -1,0 +1,60 @@
+{
+  "name": "minimajs",
+  "version": "1.1.0",
+  "description": "Ultra-minimalist JavaScript framework - Less than 5KB, zero dependencies, universal browser support",
+  "main": "src/minima.js",
+  "scripts": {
+    "dev": "node src/start-dev.js",
+    "start": "node src/start-dev.js",
+    "serve": "node src/start-dev.js",
+    "test": "node test-runner.js",
+    "test:manual": "echo \"Open http://localhost:8080/tests/framework-tests.html after running 'npm run dev'\"",
+    "test:todo": "echo \"Open http://localhost:8080/tests/todo-app-test.html after running 'npm run dev'\"",
+    "build": "echo \"No build step required - MinimaJS runs directly in browsers!\""
+  },
+  "bin": {
+    "minima-dev": "./src/start-dev.js"
+  },
+  "files": [
+    "src/minima.js",
+    "src/minima.dev.js", 
+    "src/start-dev.js",
+    "examples/",
+    "docs/",
+    "tests/"
+  ],
+  "keywords": [
+    "javascript",
+    "framework",
+    "minimalist",
+    "virtual-dom",
+    "components",
+    "reactive",
+    "spa",
+    "router",
+    "no-build",
+    "zero-dependencies"
+  ],
+  "author": "MinimaJS Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/minimajs/minimajs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/minimajs/minimajs/issues"
+  },
+  "homepage": "https://minimajs.dev",
+  "documentation": "https://minimajs.dev/docs/",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "devDependencies": {},
+  "dependencies": {},
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie <= 11"
+  ]
+}

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MinimaJS - Enhanced Features Demo</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+    
+    .demo-section {
+      margin: 30px 0;
+      padding: 20px;
+      border: 1px solid #e1e5e9;
+      border-radius: 8px;
+      background: #f8f9fa;
+    }
+    
+    .demo-section h3 {
+      margin-top: 0;
+      color: #495057;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 10px;
+    }
+    
+    .counter {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 10px 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+      font-size: 14px;
+    }
+    
+    button:hover {
+      background: #5a6fd8;
+    }
+    
+    button:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+    }
+    
+    .todo-item {
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 15px;
+      margin: 10px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .todo-item.completed {
+      background: #d4edda;
+      text-decoration: line-through;
+      opacity: 0.7;
+    }
+    
+    input {
+      padding: 8px 12px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      margin: 5px;
+      font-size: 14px;
+    }
+    
+    .fragment-demo {
+      border: 2px dashed #667eea;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    
+    .computed-display {
+      background: #e3f2fd;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 10px 0;
+      font-family: monospace;
+    }
+    
+    .router-demo {
+      background: #fff3e0;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    
+    .router-demo a {
+      color: #667eea;
+      text-decoration: none;
+      margin-right: 15px;
+      padding: 5px 10px;
+      border-radius: 4px;
+    }
+    
+    .router-demo a:hover {
+      background: #667eea;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 MinimaJS Enhanced Features Demo</h1>
+    <p>Demonstrating the new features and improvements to the MinimaJS framework</p>
+    
+    <div id="app"></div>
+  </div>
+
+  <!-- Load the enhanced MinimaJS framework -->
+  <script src="../src/minima.js"></script>
+  <script src="../src/minima.dev.js"></script>
+  
+  <script>
+    // Enhanced Template Interpolation Demo
+    const EnhancedCounter = MinimaJS.defineComponent(function(props) {
+      // Component state with computed properties
+      this.state = MinimaJS.createState({
+        count: 0,
+        name: props.name || 'Counter',
+        history: []
+      }, {
+        // Computed properties automatically update when dependencies change
+        doubleCount: function(state) {
+          return state.count * 2;
+        },
+        totalClicks: function(state) {
+          return state.history.length;
+        },
+        averageClickTime: function(state) {
+          if (state.history.length < 2) return 0;
+          const times = state.history.map(h => h.timestamp);
+          const intervals = [];
+          for (let i = 1; i < times.length; i++) {
+            intervals.push(times[i] - times[i-1]);
+          }
+          return Math.round(intervals.reduce((a, b) => a + b, 0) / intervals.length);
+        }
+      });
+
+      // Component methods available in templates
+      this.increment = () => {
+        this.state.count++;
+        this.state.history.push({
+          action: 'increment',
+          value: this.state.count,
+          timestamp: Date.now()
+        });
+      };
+
+      this.decrement = () => {
+        this.state.count--;
+        this.state.history.push({
+          action: 'decrement',
+          value: this.state.count,
+          timestamp: Date.now()
+        });
+      };
+
+      this.reset = () => {
+        this.state.count = 0;
+        this.state.history = [];
+      };
+
+      // Lifecycle hooks
+      this.onInit = function() {
+        console.log(`${this.state.name} component initialized`);
+      };
+
+      this.onDestroy = function() {
+        console.log(`${this.state.name} component destroyed`);
+      };
+
+      // shouldUpdate for performance optimization
+      this.shouldUpdate = function(newProps, newState) {
+        // Only update if count changed significantly or name changed
+        return Math.abs(newState.count - this.state.count) >= 1 || newProps.name !== this.state.name;
+      };
+
+      // Enhanced template with interpolation and event binding
+      return `
+        <div class="counter">
+          <h4>{{state.name}} (Enhanced Template Demo)</h4>
+          <p>Count: <strong>{{state.count}}</strong></p>
+          <p>Double Count: <strong>{{state.doubleCount}}</strong></p>
+          <p>Total Clicks: {{state.totalClicks}}</p>
+          <p>Average Click Interval: {{state.averageClickTime}}ms</p>
+          
+          <div>
+            <button @click="increment">Increment</button>
+            <button @click="decrement">Decrement</button>
+            <button @click="reset">Reset</button>
+          </div>
+        </div>
+      `;
+    });
+
+    // Todo List with Key-based Reconciliation
+    const TodoList = MinimaJS.defineComponent(function(props) {
+      this.state = MinimaJS.createState({
+        todos: [
+          { id: 1, text: 'Learn MinimaJS', completed: false },
+          { id: 2, text: 'Build an app', completed: false },
+          { id: 3, text: 'Deploy to production', completed: false }
+        ],
+        newTodoText: '',
+        filter: 'all' // all, active, completed
+      }, {
+        filteredTodos: function(state) {
+          switch (state.filter) {
+            case 'active': return state.todos.filter(t => !t.completed);
+            case 'completed': return state.todos.filter(t => t.completed);
+            default: return state.todos;
+          }
+        },
+        completedCount: function(state) {
+          return state.todos.filter(t => t.completed).length;
+        },
+        activeCount: function(state) {
+          return state.todos.filter(t => !t.completed).length;
+        }
+      });
+
+      this.addTodo = () => {
+        if (this.state.newTodoText.trim()) {
+          const newTodo = {
+            id: Date.now(),
+            text: this.state.newTodoText.trim(),
+            completed: false
+          };
+          this.state.todos = [...this.state.todos, newTodo];
+          this.state.newTodoText = '';
+        }
+      };
+
+      this.toggleTodo = (id) => {
+        this.state.todos = this.state.todos.map(todo =>
+          todo.id === id ? { ...todo, completed: !todo.completed } : todo
+        );
+      };
+
+      this.removeTodo = (id) => {
+        this.state.todos = this.state.todos.filter(todo => todo.id !== id);
+      };
+
+      this.setFilter = (filter) => {
+        this.state.filter = filter;
+      };
+
+      // Fragment support demonstration
+      return `
+        <div class="demo-section">
+          <h3>Todo List (Key-based Reconciliation & Computed Properties)</h3>
+          
+          <div>
+            <input type="text" placeholder="Add new todo..." value="{{state.newTodoText}}" 
+                   onkeyup="if(event.key==='Enter') this.addTodo()">
+            <button @click="addTodo">Add Todo</button>
+          </div>
+          
+          <div style="margin: 15px 0;">
+            <button @click="setFilter" onclick="this.setFilter('all')">All ({{state.todos.length}})</button>
+            <button @click="setFilter" onclick="this.setFilter('active')">Active ({{state.activeCount}})</button>
+            <button @click="setFilter" onclick="this.setFilter('completed')">Completed ({{state.completedCount}})</button>
+          </div>
+          
+          <div>
+            ${this.state.filteredTodos.map(todo => `
+              <div class="todo-item ${todo.completed ? 'completed' : ''}" key="${todo.id}">
+                <span onclick="this.toggleTodo(${todo.id})">${todo.text}</span>
+                <button onclick="this.removeTodo(${todo.id})">Remove</button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    });
+
+    // Fragment Component Demo
+    const FragmentDemo = MinimaJS.defineComponent(function(props) {
+      this.state = MinimaJS.createState({
+        showMultiple: true
+      });
+
+      this.toggle = () => {
+        this.state.showMultiple = !this.state.showMultiple;
+      };
+
+      // This component returns multiple root elements (fragment)
+      if (this.state.showMultiple) {
+        return `
+          <div class="fragment-demo">
+            <h4>Fragment Demo - Multiple Root Elements</h4>
+            <p>This component has multiple root elements, demonstrating fragment support.</p>
+            <button @click="toggle">Show Single Element</button>
+          </div>
+          <div class="fragment-demo">
+            <p>This is another root element in the same component!</p>
+            <p>Both elements are rendered without a wrapper div.</p>
+          </div>
+        `;
+      } else {
+        return `
+          <div class="fragment-demo">
+            <h4>Fragment Demo - Single Element</h4>
+            <p>Now showing as a single root element.</p>
+            <button @click="toggle">Show Multiple Elements</button>
+          </div>
+        `;
+      }
+    });
+
+    // Router Demo with Guards and Query Parameters
+    const RouterDemo = MinimaJS.defineComponent(function(props) {
+      const currentRoute = MinimaJS.router.getCurrentRoute();
+      const query = currentRoute ? currentRoute.query : {};
+      
+      return `
+        <div class="demo-section">
+          <h3>Router Demo (Guards & Query Parameters)</h3>
+          <div class="router-demo">
+            <a href="/enhanced-demo">Home</a>
+            <a href="/enhanced-demo/profile?user=john&tab=settings">Profile</a>
+            <a href="/enhanced-demo/dashboard?view=analytics">Dashboard</a>
+            <a href="/enhanced-demo/protected">Protected Route</a>
+          </div>
+          <div class="computed-display">
+            Current Route: ${currentRoute ? currentRoute.actualPath : 'none'}<br>
+            Query Parameters: ${JSON.stringify(query, null, 2)}
+          </div>
+        </div>
+      `;
+    });
+
+    // Main App Component
+    const App = MinimaJS.defineComponent(function(props) {
+      return `
+        <div>
+          <div class="demo-section">
+            <h3>Enhanced Template Interpolation & Event Binding</h3>
+            <div id="counter1"></div>
+            <div id="counter2"></div>
+          </div>
+          
+          <div id="todo-demo"></div>
+          <div id="fragment-demo"></div>
+          <div id="router-demo"></div>
+          
+          <div class="demo-section">
+            <h3>Component Memoization Demo</h3>
+            <p>The counters above use memoization for performance optimization.</p>
+            <p>Components with identical props are cached and reused.</p>
+          </div>
+        </div>
+      `;
+    });
+
+    // Set up router with guards
+    MinimaJS.router.beforeEach((to, from, next) => {
+      console.log(`Navigation guard: ${from?.actualPath || 'none'} -> ${to.actualPath}`);
+      
+      // Simulate authentication check for protected routes
+      if (to.actualPath.includes('protected')) {
+        if (!window.sessionStorage.getItem('authenticated')) {
+          alert('This route is protected! Redirecting to home.');
+          next('/enhanced-demo');
+          return;
+        }
+      }
+      
+      next(); // Allow navigation
+    });
+
+    MinimaJS.router.afterEach((to, from) => {
+      console.log(`Navigation completed: ${to.actualPath}`);
+      document.title = `MinimaJS Demo - ${to.actualPath}`;
+    });
+
+    // Initialize the application
+    document.addEventListener('DOMContentLoaded', function() {
+      // Render main app
+      MinimaJS.render(App, document.getElementById('app'));
+      
+      // Render individual demos
+      const Counter1 = function() { return EnhancedCounter({ name: 'Counter A' }); };
+      const Counter2 = function() { return MinimaJS.memo(EnhancedCounter, { name: 'Counter B (Memoized)' }); };
+      
+      MinimaJS.render(Counter1, document.getElementById('counter1'));
+      MinimaJS.render(Counter2, document.getElementById('counter2'));
+      MinimaJS.render(TodoList, document.getElementById('todo-demo'));
+      MinimaJS.render(FragmentDemo, document.getElementById('fragment-demo'));
+      MinimaJS.render(RouterDemo, document.getElementById('router-demo'));
+      
+      // Demonstrate batch updates
+      console.log('🚀 MinimaJS Enhanced Features Demo loaded!');
+      console.log('New features demonstrated:');
+      console.log('• Enhanced template interpolation with {{}} syntax');
+      console.log('• Event binding with @click syntax');
+      console.log('• Computed properties for derived state');
+      console.log('• Key-based reconciliation for list performance');
+      console.log('• Fragment support for multiple root elements');
+      console.log('• Batch updates for optimal rendering');
+      console.log('• Component lifecycle hooks (onInit, onDestroy, shouldUpdate)');
+      console.log('• Router guards and query parameters');
+      console.log('• Component memoization for performance');
+      console.log('• Enhanced error reporting with suggestions');
+    });
+  </script>
+</body>
+</html>

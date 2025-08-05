@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Button Test</title>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script src="src/minima.js"></script>
+  <script src="src/minima.dev.js"></script>
+  
+  <script>
+    const TestComponent = MinimaJS.defineComponent(function(props) {
+      this.state = MinimaJS.createState({
+        count: 0
+      });
+
+      this.increment = () => {
+        console.log('Increment called!');
+        this.state.count++;
+      };
+
+      this.decrement = () => {
+        console.log('Decrement called!');
+        this.state.count--;
+      };
+
+      return `
+        <div>
+          <h2>Count: {{state.count}}</h2>
+          <button @click="increment">+</button>
+          <button @click="decrement">-</button>
+        </div>
+      `;
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+      MinimaJS.render(TestComponent, document.getElementById('app'));
+    });
+  </script>
+</body>
+</html>

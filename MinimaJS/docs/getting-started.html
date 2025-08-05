@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Getting Started - MinimaJS Documentation</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+  <style>
+    :root {
+      --primary-color: #667eea;
+      --secondary-color: #764ba2;
+      --text-dark: #2d3748;
+      --text-light: #4a5568;
+      --bg-light: #f7fafc;
+      --bg-white: #ffffff;
+      --border-color: #e2e8f0;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: var(--text-dark);
+      background: var(--bg-light);
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      color: white;
+      padding: 2rem 0;
+      margin-bottom: 2rem;
+    }
+
+    .breadcrumb {
+      margin-bottom: 1rem;
+      opacity: 0.8;
+    }
+
+    .breadcrumb a {
+      color: white;
+      text-decoration: none;
+    }
+
+    h1, h2, h3 { color: var(--text-dark); margin-bottom: 1rem; }
+    h1 { font-size: 2.5rem; }
+    h2 { font-size: 2rem; margin-top: 2rem; }
+    h3 { font-size: 1.5rem; margin-top: 1.5rem; }
+
+    p { margin-bottom: 1rem; color: var(--text-light); }
+
+    .code-block {
+      background: var(--text-dark);
+      color: #e2e8f0;
+      padding: 1.5rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 1rem 0;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 0.9rem;
+    }
+
+    .step {
+      background: var(--bg-white);
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 2rem 0;
+      box-shadow: var(--shadow);
+      border-left: 4px solid var(--primary-color);
+    }
+
+    .step-number {
+      background: var(--primary-color);
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-right: 1rem;
+    }
+
+    .note {
+      background: #e3f2fd;
+      border-left: 4px solid #2196f3;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 4px;
+    }
+
+    .warning {
+      background: #fff3e0;
+      border-left: 4px solid #ff9800;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 4px;
+    }
+
+    .success {
+      background: #e8f5e8;
+      border-left: 4px solid #4caf50;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 4px;
+    }
+
+    .nav-links {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .nav-links a {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .demo-area {
+      background: var(--bg-white);
+      border: 2px dashed var(--border-color);
+      border-radius: 8px;
+      padding: 2rem;
+      margin: 2rem 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="index.html">📚 Documentation</a> / Getting Started
+      </div>
+      <h1>Getting Started with MinimaJS</h1>
+      <p>Learn how to build your first MinimaJS application in minutes</p>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="step">
+      <h2><span class="step-number">1</span>Installation</h2>
+      <p>Choose your preferred installation method:</p>
+
+      <h3>Option A: CDN (Recommended for beginners)</h3>
+      <p>The fastest way to get started. No downloads or setup required.</p>
+      <div class="code-block">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;title&gt;My MinimaJS App&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div id="app"&gt;&lt;/div&gt;
+  
+  &lt;!-- MinimaJS Core --&gt;
+  &lt;script src="https://cdn.jsdelivr.net/npm/minimajs/src/minima.js"&gt;&lt;/script&gt;
+  
+  &lt;!-- Development Tools (optional, for development only) --&gt;
+  &lt;script src="https://cdn.jsdelivr.net/npm/minimajs/src/minima.dev.js"&gt;&lt;/script&gt;
+  
+  &lt;script&gt;
+    // Your app code goes here
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</div>
+
+      <h3>Option B: Local Development</h3>
+      <p>Download and run locally for full development experience with hot reload.</p>
+      <div class="code-block">
+# Clone the repository
+git clone https://github.com/minimajs/minimajs.git
+cd minimajs
+
+# Start the development server
+npm run dev
+
+# Open your browser to http://localhost:8080</div>
+
+      <div class="note">
+        <strong>💡 Tip:</strong> Use the CDN method for learning and prototyping. Switch to local development when you need hot reload and development tools.
+      </div>
+    </div>
+
+    <div class="step">
+      <h2><span class="step-number">2</span>Your First Component</h2>
+      <p>Let's create a simple counter component to understand the basics:</p>
+
+      <div class="code-block">
+// Define a component with enhanced features
+const Counter = MinimaJS.defineComponent(function(props) {
+  // Enhanced reactive state with computed properties
+  this.state = MinimaJS.createState({
+    count: props.initialCount || 0,
+    name: props.name || 'Counter'
+  }, {
+    // Computed property - automatically updates when count changes
+    doubleCount: function(state) {
+      return state.count * 2;
+    },
+    isEven: function(state) {
+      return state.count % 2 === 0;
+    }
+  });
+  
+  // Component methods (available in templates)
+  this.increment = () => {
+    this.state.count++;
+  };
+  
+  this.decrement = () => {
+    this.state.count--;
+  };
+  
+  this.reset = () => {
+    this.state.count = 0;
+  };
+  
+  // Lifecycle hooks
+  this.onInit = function() {
+    console.log(`${this.state.name} component initialized!`);
+  };
+  
+  this.onDestroy = function() {
+    console.log(`${this.state.name} component destroyed!`);
+  };
+  
+  // Enhanced template with interpolation and event binding
+  return `
+    &lt;div style="text-align: center; padding: 20px; border: 1px solid #ddd; border-radius: 8px;"&gt;
+      &lt;h2&gt;{{state.name}}: {{state.count}}&lt;/h2&gt;
+      &lt;p&gt;Double: {{state.doubleCount}} | {{state.isEven ? 'Even' : 'Odd'}}&lt;/p&gt;
+      &lt;button @click="increment" style="margin: 5px; padding: 10px 15px;"&gt;+&lt;/button&gt;
+      &lt;button @click="decrement" style="margin: 5px; padding: 10px 15px;"&gt;-&lt;/button&gt;
+      &lt;button @click="reset" style="margin: 5px; padding: 10px 15px;"&gt;Reset&lt;/button&gt;
+    &lt;/div&gt;
+  `;
+});
+
+// Render the component
+MinimaJS.render(Counter, document.getElementById('app'));</div>
+
+      <div class="demo-area">
+        <h4>🎮 Try it live:</h4>
+        <div id="counter-demo"></div>
+      </div>
+
+      <h3>Understanding the Component</h3>
+      <ul>
+        <li><strong>defineComponent:</strong> Creates a new component with lifecycle management</li>
+        <li><strong>this.state:</strong> Reactive state that triggers re-renders when changed</li>
+        <li><strong>Event handlers:</strong> Regular JavaScript functions that modify state</li>
+        <li><strong>Template:</strong> HTML template string with JavaScript interpolation</li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <h2><span class="step-number">3</span>Props and Communication</h2>
+      <p>Components receive data through props and can communicate with parent components:</p>
+
+      <div class="code-block">
+// Child component that receives props
+const Greeting = MinimaJS.defineComponent(function(props) {
+  return `
+    &lt;div style="padding: 10px; background: #f0f0f0; margin: 10px 0; border-radius: 4px;"&gt;
+      &lt;h3&gt;Hello, ${props.name}!&lt;/h3&gt;
+      &lt;p&gt;You are ${props.age} years old.&lt;/p&gt;
+      ${props.isAdmin ? '&lt;p&gt;👑 Admin privileges enabled&lt;/p&gt;' : ''}
+    &lt;/div&gt;
+  `;
+});
+
+// Parent component that passes props
+const UserProfile = MinimaJS.defineComponent(function(props) {
+  this.state = MinimaJS.createState({
+    user: {
+      name: 'John Doe',
+      age: 25,
+      isAdmin: false
+    }
+  });
+  
+  const toggleAdmin = () => {
+    this.state.user = {
+      ...this.state.user,
+      isAdmin: !this.state.user.isAdmin
+    };
+  };
+  
+  // Render child component with props
+  const greetingHTML = Greeting({
+    name: this.state.user.name,
+    age: this.state.user.age,
+    isAdmin: this.state.user.isAdmin
+  })._template;
+  
+  return `
+    &lt;div&gt;
+      ${greetingHTML}
+      &lt;button onclick="toggleAdmin()"&gt;
+        ${this.state.user.isAdmin ? 'Remove Admin' : 'Make Admin'}
+      &lt;/button&gt;
+    &lt;/div&gt;
+  `;
+});</div>
+
+      <div class="demo-area">
+        <h4>🎮 Props Demo:</h4>
+        <div id="props-demo"></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <h2><span class="step-number">4</span>Global State Management</h2>
+      <p>Share data across components using global stores:</p>
+
+      <div class="code-block">
+// Create a global store
+const appStore = MinimaJS.store('app', {
+  theme: 'light',
+  user: null,
+  notifications: []
+});
+
+// Component that uses global state
+const ThemeToggle = MinimaJS.defineComponent(function(props) {
+  const toggleTheme = () => {
+    appStore.theme = appStore.theme === 'light' ? 'dark' : 'light';
+  };
+  
+  return `
+    &lt;div style="padding: 15px; background: ${appStore.theme === 'dark' ? '#333' : '#fff'}; color: ${appStore.theme === 'dark' ? '#fff' : '#333'};"&gt;
+      &lt;h3&gt;Current theme: ${appStore.theme}&lt;/h3&gt;
+      &lt;button onclick="toggleTheme()"&gt;Switch to ${appStore.theme === 'light' ? 'Dark' : 'Light'} Mode&lt;/button&gt;
+    &lt;/div&gt;
+  `;
+});
+
+// Another component that reacts to the same store
+const ThemeDisplay = MinimaJS.defineComponent(function(props) {
+  // Subscribe to store changes
+  this.onInit = function() {
+    MinimaJS.onGlobalStateChange('app', 'theme', () => {
+      // Component will re-render automatically
+      console.log('Theme changed to:', appStore.theme);
+    });
+  };
+  
+  return `
+    &lt;p&gt;The current theme is: &lt;strong&gt;${appStore.theme}&lt;/strong&gt;&lt;/p&gt;
+  `;
+});</div>
+
+      <div class="demo-area">
+        <h4>🎮 Global State Demo:</h4>
+        <div id="global-state-demo"></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <h2><span class="step-number">5</span>Lifecycle Hooks</h2>
+      <p>Components have lifecycle hooks for initialization and updates:</p>
+
+      <div class="code-block">
+const LifecycleDemo = MinimaJS.defineComponent(function(props) {
+  this.state = MinimaJS.createState({
+    mounted: false,
+    updateCount: 0,
+    data: null
+  });
+  
+  // Called once when component is first rendered
+  this.onInit = function() {
+    console.log('Component initialized!');
+    this.state.mounted = true;
+    
+    // Simulate data fetching
+    setTimeout(() => {
+      this.state.data = 'Data loaded from API';
+    }, 1000);
+  };
+  
+  // Called every time the component re-renders
+  this.onUpdate = function() {
+    console.log('Component updated!');
+    this.state.updateCount++;
+  };
+  
+  const triggerUpdate = () => {
+    this.state.mounted = !this.state.mounted;
+  };
+  
+  return `
+    &lt;div style="padding: 15px; border: 1px solid #ddd;"&gt;
+      &lt;h3&gt;Lifecycle Demo&lt;/h3&gt;
+      &lt;p&gt;Mounted: ${this.state.mounted}&lt;/p&gt;
+      &lt;p&gt;Updates: ${this.state.updateCount}&lt;/p&gt;
+      &lt;p&gt;Data: ${this.state.data || 'Loading...'}&lt;/p&gt;
+      &lt;button onclick="triggerUpdate()"&gt;Trigger Update&lt;/button&gt;
+    &lt;/div&gt;
+  `;
+});</div>
+
+      <div class="success">
+        <strong>✅ Congratulations!</strong> You now know the fundamentals of MinimaJS. You can create components, manage state, and handle user interactions.
+      </div>
+    </div>
+
+    <div class="step">
+      <h2><span class="step-number">6</span>Next Steps</h2>
+      <p>Now that you understand the basics, here's what to explore next:</p>
+
+      <h3>🗺️ Routing for SPAs</h3>
+      <p>Learn how to create single-page applications with routing:</p>
+      <div class="code-block">
+const routes = [
+  { path: '/', component: HomePage },
+  { path: '/about', component: AboutPage },
+  { path: '/users/:id', component: UserPage }
+];
+
+MinimaJS.router.init(routes, document.getElementById('app'));</div>
+
+      <h3>🧪 Type Checking (Development)</h3>
+      <p>Add runtime type validation for better development experience:</p>
+      <div class="code-block">
+const TypedComponent = MinimaJS.defineComponent({
+  props: {
+    title: String,
+    count: Number,
+    items: Array
+  }
+}, function(props) {
+  // Props are automatically validated in development mode
+  return `&lt;div&gt;${props.title}: ${props.count}&lt;/div&gt;`;
+});</div>
+
+      <h3>📖 Learn More</h3>
+      <ul>
+        <li><a href="../examples/todo-app.html">📝 Complete Todo App</a> - Full-featured SPA example</li>
+        <li><a href="../examples/components-demo.html">🧩 Component Gallery</a> - More component patterns</li>
+        <li><a href="index.html#api">📚 Full API Reference</a> - Complete documentation</li>
+        <li><a href="../tests/framework-tests.html">🧪 Test Suite</a> - Run framework tests</li>
+      </ul>
+
+      <div class="warning">
+        <strong>⚠️ Development Tips:</strong>
+        <ul>
+          <li>Always include <code>minima.dev.js</code> during development for better error messages</li>
+          <li>Use the browser's developer console to debug components</li>
+          <li>Try <code>MinimaJS.dev.listComponents()</code> to see all registered components</li>
+          <li>Hot reload works automatically when using the development server</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="nav-links">
+      <a href="index.html">← Back to Documentation</a>
+      <a href="../examples/index.html">View Examples →</a>
+    </div>
+  </div>
+
+  <!-- Load MinimaJS for demos -->
+  <script src="../src/minima.js"></script>
+  <script src="../src/minima.dev.js"></script>
+
+  <script>
+    // Demo components
+    const CounterDemo = MinimaJS.defineComponent(function(props) {
+      this.state = MinimaJS.createState({ count: 0 });
+      
+      const increment = () => this.state.count++;
+      const decrement = () => this.state.count--;
+      const reset = () => this.state.count = 0;
+      
+      return `
+        <div style="text-align: center; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+          <h3>Count: ${this.state.count}</h3>
+          <button onclick="increment()" style="margin: 5px; padding: 8px 15px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer;">+</button>
+          <button onclick="decrement()" style="margin: 5px; padding: 8px 15px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer;">-</button>
+          <button onclick="reset()" style="margin: 5px; padding: 8px 15px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Reset</button>
+        </div>
+      `;
+    });
+
+    const PropsDemo = MinimaJS.defineComponent(function(props) {
+      this.state = MinimaJS.createState({
+        user: { name: 'Jane Smith', age: 28, isAdmin: false }
+      });
+      
+      const toggleAdmin = () => {
+        this.state.user = { ...this.state.user, isAdmin: !this.state.user.isAdmin };
+      };
+      
+      return `
+        <div>
+          <div style="padding: 10px; background: #f0f0f0; margin: 10px 0; border-radius: 4px;">
+            <h4>Hello, ${this.state.user.name}!</h4>
+            <p>Age: ${this.state.user.age}</p>
+            ${this.state.user.isAdmin ? '<p>👑 Admin privileges enabled</p>' : '<p>👤 Regular user</p>'}
+          </div>
+          <button onclick="toggleAdmin()" style="padding: 8px 15px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            ${this.state.user.isAdmin ? 'Remove Admin' : 'Make Admin'}
+          </button>
+        </div>
+      `;
+    });
+
+    const GlobalStateDemo = MinimaJS.defineComponent(function(props) {
+      // Create demo store
+      const demoStore = MinimaJS.store('demo-theme', { theme: 'light' });
+      
+      const toggleTheme = () => {
+        demoStore.theme = demoStore.theme === 'light' ? 'dark' : 'light';
+      };
+      
+      return `
+        <div style="padding: 15px; background: ${demoStore.theme === 'dark' ? '#333' : '#fff'}; color: ${demoStore.theme === 'dark' ? '#fff' : '#333'}; border-radius: 8px; border: 1px solid #ddd;">
+          <h4>Theme: ${demoStore.theme}</h4>
+          <button onclick="toggleTheme()" style="padding: 8px 15px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Switch to ${demoStore.theme === 'light' ? 'Dark' : 'Light'}
+          </button>
+          <p style="margin-top: 10px; font-size: 0.9em;">This demonstrates global state shared across components.</p>
+        </div>
+      `;
+    });
+
+    // Expose global functions for event handlers
+    window.increment = () => console.log('increment called');
+    window.decrement = () => console.log('decrement called');
+    window.reset = () => console.log('reset called');
+    window.toggleAdmin = () => console.log('toggleAdmin called');
+    window.toggleTheme = () => console.log('toggleTheme called');
+
+    // Render demos
+    document.addEventListener('DOMContentLoaded', function() {
+      const counterContainer = document.getElementById('counter-demo');
+      const propsContainer = document.getElementById('props-demo');
+      const globalStateContainer = document.getElementById('global-state-demo');
+      
+      if (counterContainer) MinimaJS.render(CounterDemo, counterContainer);
+      if (propsContainer) MinimaJS.render(PropsDemo, propsContainer);
+      if (globalStateContainer) MinimaJS.render(GlobalStateDemo, globalStateContainer);
+    });
+  </script>
+</body>
+</html>

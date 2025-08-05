@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MinimaJS Framework Tests</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f8f9fa;
+    }
+    
+    .test-header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 8px;
+    }
+    
+    .test-suite {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .test-case {
+      border-left: 4px solid #ddd;
+      padding: 15px;
+      margin: 10px 0;
+      background: #f8f9fa;
+    }
+    
+    .test-case.pass {
+      border-left-color: #28a745;
+      background: #d4edda;
+    }
+    
+    .test-case.fail {
+      border-left-color: #dc3545;
+      background: #f8d7da;
+    }
+    
+    .test-case.pending {
+      border-left-color: #ffc107;
+      background: #fff3cd;
+    }
+    
+    .test-summary {
+      background: #e9ecef;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    
+    .test-output {
+      background: #f1f3f4;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 10px;
+      margin: 10px 0;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+    }
+    
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    
+    button:hover {
+      background: #5a6fd8;
+    }
+    
+    .demo-component {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 15px;
+      margin: 10px 0;
+      background: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-header">
+    <h1>🧪 MinimaJS Framework Tests</h1>
+    <p>Comprehensive test suite for validating framework functionality</p>
+  </div>
+
+  <div id="test-results">
+    <p>Initializing test suite...</p>
+  </div>
+
+  <div id="demo-area">
+    <h2>🎮 Live Component Tests</h2>
+    <div id="component-test-area"></div>
+  </div>
+
+  <!-- Load MinimaJS Framework -->
+  <script src="../src/minima.js"></script>
+  <script src="../src/minima.dev.js"></script>
+
+  <script>
+    // =========================================================================
+    // TEST FRAMEWORK
+    // =========================================================================
+    
+    class TestRunner {
+      constructor() {
+        this.results = [];
+        this.currentSuite = null;
+      }
+      
+      suite(name, fn) {
+        this.currentSuite = {
+          name: name,
+          tests: [],
+          setup: null,
+          teardown: null
+        };
+        
+        fn.call(this);
+        this.results.push(this.currentSuite);
+        this.currentSuite = null;
+      }
+      
+      test(name, fn) {
+        if (!this.currentSuite) {
+          throw new Error('Test must be inside a suite');
+        }
+        
+        this.currentSuite.tests.push({
+          name: name,
+          fn: fn,
+          status: 'pending',
+          error: null,
+          output: []
+        });
+      }
+      
+      setup(fn) {
+        if (this.currentSuite) {
+          this.currentSuite.setup = fn;
+        }
+      }
+      
+      teardown(fn) {
+        if (this.currentSuite) {
+          this.currentSuite.teardown = fn;
+        }
+      }
+      
+      async run() {
+        console.log('🧪 Starting MinimaJS test suite...');
+        
+        for (const suite of this.results) {
+          console.log(`\n📦 Running suite: ${suite.name}`);
+          
+          for (const test of suite.tests) {
+            try {
+              // Run setup if available
+              if (suite.setup) {
+                await suite.setup();
+              }
+              
+              // Run the test
+              console.log(`  ▶️ ${test.name}`);
+              await test.fn();
+              
+              test.status = 'pass';
+              console.log(`  ✅ ${test.name} - PASSED`);
+              
+              // Run teardown if available
+              if (suite.teardown) {
+                await suite.teardown();
+              }
+              
+            } catch (error) {
+              test.status = 'fail';
+              test.error = error;
+              console.error(`  ❌ ${test.name} - FAILED:`, error.message);
+            }
+          }
+        }
+        
+        this.renderResults();
+      }
+      
+      renderResults() {
+        const container = document.getElementById('test-results');
+        let html = '';
+        
+        let totalTests = 0;
+        let passedTests = 0;
+        let failedTests = 0;
+        
+        for (const suite of this.results) {
+          html += `<div class="test-suite">`;
+          html += `<h3>📦 ${suite.name}</h3>`;
+          
+          for (const test of suite.tests) {
+            totalTests++;
+            if (test.status === 'pass') passedTests++;
+            if (test.status === 'fail') failedTests++;
+            
+            html += `<div class="test-case ${test.status}">`;
+            html += `<strong>${test.status === 'pass' ? '✅' : test.status === 'fail' ? '❌' : '⏳'} ${test.name}</strong>`;
+            
+            if (test.error) {
+              html += `<div class="test-output">Error: ${test.error.message}</div>`;
+            }
+            
+            if (test.output && test.output.length > 0) {
+              html += `<div class="test-output">${test.output.join('\n')}</div>`;
+            }
+            
+            html += `</div>`;
+          }
+          
+          html += `</div>`;
+        }
+        
+        // Add summary
+        html = `
+          <div class="test-summary">
+            <h3>📊 Test Summary</h3>
+            <p><strong>Total:</strong> ${totalTests} | <strong>Passed:</strong> ${passedTests} | <strong>Failed:</strong> ${failedTests}</p>
+            <p><strong>Success Rate:</strong> ${totalTests > 0 ? Math.round((passedTests / totalTests) * 100) : 0}%</p>
+          </div>
+        ` + html;
+        
+        container.innerHTML = html;
+      }
+    }
+    
+    // Helper assertion functions
+    function assert(condition, message = 'Assertion failed') {
+      if (!condition) {
+        throw new Error(message);
+      }
+    }
+    
+    function assertEqual(actual, expected, message) {
+      if (actual !== expected) {
+        throw new Error(message || `Expected "${expected}", got "${actual}"`);
+      }
+    }
+    
+    function assertNotNull(value, message = 'Value should not be null') {
+      if (value === null || value === undefined) {
+        throw new Error(message);
+      }
+    }
+    
+    function assertType(value, expectedType, message) {
+      if (typeof value !== expectedType) {
+        throw new Error(message || `Expected type "${expectedType}", got "${typeof value}"`);
+      }
+    }
+
+    // =========================================================================
+    // FRAMEWORK TESTS
+    // =========================================================================
+    
+    const testRunner = new TestRunner();
+    
+    // Test Suite 1: Core Framework
+    testRunner.suite('Core Framework', function() {
+      this.test('MinimaJS global object exists', function() {
+        assertNotNull(window.MinimaJS, 'MinimaJS should be available globally');
+        assertType(window.MinimaJS, 'object', 'MinimaJS should be an object');
+      });
+      
+      this.test('Core API methods exist', function() {
+        const requiredMethods = [
+          'createElement', 'render', 'defineComponent', 
+          'createState', 'store', 'onGlobalStateChange'
+        ];
+        
+        for (const method of requiredMethods) {
+          assertType(MinimaJS[method], 'function', `MinimaJS.${method} should be a function`);
+        }
+      });
+      
+      this.test('Router object exists and has methods', function() {
+        assertNotNull(MinimaJS.router, 'Router should exist');
+        assertType(MinimaJS.router.init, 'function', 'Router.init should be a function');
+        assertType(MinimaJS.router.navigate, 'function', 'Router.navigate should be a function');
+      });
+      
+      this.test('Development tools are available', function() {
+        assertNotNull(MinimaJS.dev, 'Development tools should be available');
+        assertType(MinimaJS.dev.listComponents, 'function', 'Dev tools should have listComponents');
+        assertType(MinimaJS.dev.getPerformanceStats, 'function', 'Dev tools should have getPerformanceStats');
+      });
+    });
+    
+    // Test Suite 2: Virtual DOM
+    testRunner.suite('Virtual DOM', function() {
+      this.test('createElement creates valid VNode', function() {
+        const vnode = MinimaJS.createElement('div', { id: 'test' }, ['Hello']);
+        
+        assertEqual(vnode.tag, 'div', 'VNode should have correct tag');
+        assertEqual(vnode.props.id, 'test', 'VNode should have correct props');
+        assertEqual(vnode.children[0], 'Hello', 'VNode should have correct children');
+        assertEqual(vnode._type, 'element', 'VNode should have correct type');
+      });
+      
+      this.test('createElement handles empty props and children', function() {
+        const vnode = MinimaJS.createElement('span');
+        
+        assertEqual(vnode.tag, 'span', 'VNode should have correct tag');
+        assertType(vnode.props, 'object', 'VNode should have props object');
+        assert(Array.isArray(vnode.children), 'VNode should have children array');
+      });
+    });
+    
+    // Test Suite 3: State Management
+    testRunner.suite('State Management', function() {
+      this.test('createState creates reactive object', function() {
+        const state = MinimaJS.createState({ count: 0 });
+        
+        assertEqual(state.count, 0, 'Initial state should be set correctly');
+        assertType(state._subscribe, 'function', 'State should have _subscribe method');
+      });
+      
+      this.test('state changes trigger subscribers', function() {
+        return new Promise((resolve) => {
+          const state = MinimaJS.createState({ value: 'initial' });
+          
+          let callbackFired = false;
+          const unsubscribe = state._subscribe((key, newValue, oldValue) => {
+            assertEqual(key, 'value', 'Callback should receive correct key');
+            assertEqual(newValue, 'changed', 'Callback should receive new value');
+            assertEqual(oldValue, 'initial', 'Callback should receive old value');
+            callbackFired = true;
+            resolve();
+          });
+          
+          state.value = 'changed';
+          
+          setTimeout(() => {
+            assert(callbackFired, 'State change callback should have fired');
+            unsubscribe();
+          }, 10);
+        });
+      });
+      
+      this.test('global store works correctly', function() {
+        const store = MinimaJS.store('test-store', { data: 'test' });
+        
+        assertEqual(store.data, 'test', 'Global store should have initial data');
+        
+        // Test that same store is returned
+        const store2 = MinimaJS.store('test-store');
+        assertEqual(store, store2, 'Same store should be returned for same name');
+      });
+    });
+    
+    // Test Suite 4: Components
+    testRunner.suite('Components', function() {
+      this.test('defineComponent creates component function', function() {
+        const TestComponent = MinimaJS.defineComponent(function(props) {
+          return `<div>Hello ${props.name}</div>`;
+        });
+        
+        assertType(TestComponent, 'function', 'defineComponent should return a function');
+      });
+      
+      this.test('component receives props correctly', function() {
+        const TestComponent = MinimaJS.defineComponent(function(props) {
+          assertEqual(props.title, 'Test Title', 'Props should be passed correctly');
+          return `<div>${props.title}</div>`;
+        });
+        
+        const instance = TestComponent({ title: 'Test Title' });
+        assertNotNull(instance, 'Component should return instance');
+      });
+      
+      this.test('component has state and lifecycle methods', function() {
+        const TestComponent = MinimaJS.defineComponent(function(props) {
+          assertNotNull(this.state, 'Component should have state');
+          assertType(this.onInit, 'function', 'Component should have onInit');
+          assertType(this.onUpdate, 'function', 'Component should have onUpdate');
+          
+          return `<div>Test</div>`;
+        });
+        
+        const instance = TestComponent({});
+        assertNotNull(instance.state, 'Instance should have state');
+      });
+    });
+    
+    // Test Suite 5: Router
+    testRunner.suite('Router', function() {
+      this.test('router can be initialized', function() {
+        const routes = [
+          { path: '/test', component: () => 'Test Component' }
+        ];
+        
+        // This should not throw
+        MinimaJS.router.init(routes, document.createElement('div'));
+        
+        assert(Array.isArray(MinimaJS.router._routes), 'Router should store routes');
+        assertEqual(MinimaJS.router._routes.length, 1, 'Router should have correct number of routes');
+      });
+      
+      this.test('router path matching works', function() {
+        // Test the internal path matching (if available)
+        if (MinimaJS.router._pathMatches) {
+          const match = MinimaJS.router._pathMatches('/users/:id', '/users/123');
+          assertNotNull(match, 'Path should match');
+          assertEqual(match.params.id, '123', 'Parameter should be extracted correctly');
+        }
+      });
+    });
+
+    // =========================================================================
+    // TODO APP SPECIFIC TESTS
+    // =========================================================================
+    
+    testRunner.suite('Todo App Integration', function() {
+      this.setup(function() {
+        // Create a test container
+        this.testContainer = document.createElement('div');
+        this.testContainer.id = 'todo-test-container';
+        document.body.appendChild(this.testContainer);
+      });
+      
+      this.teardown(function() {
+        // Clean up test container
+        if (this.testContainer) {
+          document.body.removeChild(this.testContainer);
+        }
+      });
+      
+      this.test('Todo store can be created', function() {
+        const todoStore = MinimaJS.store('test-todos', {
+          items: [],
+          filter: 'all',
+          newTodoText: ''
+        });
+        
+        assertNotNull(todoStore, 'Todo store should be created');
+        assert(Array.isArray(todoStore.items), 'Todo items should be an array');
+        assertEqual(todoStore.filter, 'all', 'Default filter should be "all"');
+      });
+      
+      this.test('Todo component can be created', function() {
+        const TodoComponent = MinimaJS.defineComponent(function(props) {
+          if (!this.state.todos) {
+            this.state.todos = [];
+          }
+          
+          return `<div class="todo-list">Todos: ${this.state.todos.length}</div>`;
+        });
+        
+        const instance = TodoComponent({});
+        assertNotNull(instance, 'Todo component should be created');
+        assert(Array.isArray(instance.state.todos), 'Todo component should have todos array');
+      });
+      
+      this.test('Todo operations work correctly', function() {
+        const todoStore = MinimaJS.store('test-todo-ops', {
+          items: [
+            { id: 1, text: 'Test todo', completed: false }
+          ],
+          nextId: 2
+        });
+        
+        // Test adding todo
+        todoStore.items = [
+          ...todoStore.items,
+          { id: todoStore.nextId++, text: 'New todo', completed: false }
+        ];
+        
+        assertEqual(todoStore.items.length, 2, 'Should have 2 todos after adding');
+        assertEqual(todoStore.items[1].text, 'New todo', 'New todo should have correct text');
+        
+        // Test completing todo
+        todoStore.items = todoStore.items.map(todo => 
+          todo.id === 1 ? { ...todo, completed: true } : todo
+        );
+        
+        assertEqual(todoStore.items[0].completed, true, 'First todo should be completed');
+        
+        // Test filtering
+        const activeTodos = todoStore.items.filter(todo => !todo.completed);
+        const completedTodos = todoStore.items.filter(todo => todo.completed);
+        
+        assertEqual(activeTodos.length, 1, 'Should have 1 active todo');
+        assertEqual(completedTodos.length, 1, 'Should have 1 completed todo');
+      });
+    });
+
+    // =========================================================================
+    // LIVE COMPONENT DEMO TESTS
+    // =========================================================================
+    
+    function createLiveTests() {
+      const container = document.getElementById('component-test-area');
+      
+      // Test Counter Component
+      const TestCounter = MinimaJS.defineComponent(function(props) {
+        if (!this.state.count) {
+          this.state.count = 0;
+        }
+        
+        const increment = () => {
+          this.state.count++;
+        };
+        
+        // Store increment function globally for testing
+        window.testIncrement = increment;
+        
+        return `
+          <div class="demo-component">
+            <h4>🔢 Live Counter Test</h4>
+            <div>Count: <strong id="counter-value">${this.state.count}</strong></div>
+            <button onclick="testIncrement()">Increment</button>
+            <p><small>Status: ${this.state.count > 0 ? 'Working ✅' : 'Click to test 🔄'}</small></p>
+          </div>
+        `;
+      });
+      
+      // Test Todo Component
+      const TestTodo = MinimaJS.defineComponent(function(props) {
+        if (!this.state.todos) {
+          this.state.todos = [
+            { id: 1, text: 'Test todo item', completed: false }
+          ];
+          this.state.newTodo = '';
+        }
+        
+        const addTodo = () => {
+          if (this.state.newTodo.trim()) {
+            this.state.todos = [
+              ...this.state.todos,
+              { id: Date.now(), text: this.state.newTodo.trim(), completed: false }
+            ];
+            this.state.newTodo = '';
+          }
+        };
+        
+        const toggleTodo = (id) => {
+          this.state.todos = this.state.todos.map(todo =>
+            todo.id === id ? { ...todo, completed: !todo.completed } : todo
+          );
+        };
+        
+        // Store functions globally for testing
+        window.testAddTodo = addTodo;
+        window.testToggleTodo = toggleTodo;
+        window.testUpdateTodoInput = (value) => {
+          this.state.newTodo = value;
+        };
+        
+        const todosHtml = this.state.todos.map(todo => `
+          <div style="padding: 5px; border: 1px solid #ddd; margin: 5px 0; ${todo.completed ? 'opacity: 0.6; text-decoration: line-through;' : ''}">
+            <input type="checkbox" ${todo.completed ? 'checked' : ''} onchange="testToggleTodo(${todo.id})">
+            ${todo.text}
+          </div>
+        `).join('');
+        
+        return `
+          <div class="demo-component">
+            <h4>📝 Live Todo Test</h4>
+            <input 
+              type="text" 
+              placeholder="Add todo..." 
+              value="${this.state.newTodo}"
+              oninput="testUpdateTodoInput(this.value)"
+              onkeypress="if(event.key==='Enter') testAddTodo()"
+            >
+            <button onclick="testAddTodo()">Add</button>
+            <div style="margin-top: 10px;">
+              ${todosHtml}
+            </div>
+            <p><small>Total: ${this.state.todos.length} | Completed: ${this.state.todos.filter(t => t.completed).length}</small></p>
+          </div>
+        `;
+      });
+      
+      // Render components
+      const counterContainer = document.createElement('div');
+      const todoContainer = document.createElement('div');
+      
+      container.appendChild(counterContainer);
+      container.appendChild(todoContainer);
+      
+      MinimaJS.render(TestCounter, counterContainer);
+      MinimaJS.render(TestTodo, todoContainer);
+    }
+
+    // =========================================================================
+    // RUN TESTS
+    // =========================================================================
+    
+    document.addEventListener('DOMContentLoaded', async function() {
+      console.log('🧪 Initializing MinimaJS test suite...');
+      
+      // Create live component tests
+      createLiveTests();
+      
+      // Run automated tests
+      await testRunner.run();
+      
+      console.log('✅ Test suite completed!');
+      
+      // Add manual test buttons
+      const container = document.getElementById('test-results');
+      const buttonHtml = `
+        <div style="margin-top: 20px; text-align: center;">
+          <h3>🔧 Manual Tests</h3>
+          <button onclick="runPerformanceTest()">⚡ Performance Test</button>
+          <button onclick="runMemoryTest()">💾 Memory Test</button>
+          <button onclick="runDevToolsTest()">🛠️ Dev Tools Test</button>
+          <button onclick="window.location.href='../examples/todo-app.html'">🚀 Open Todo App</button>
+        </div>
+      `;
+      container.innerHTML += buttonHtml;
+    });
+    
+    // Manual test functions
+    window.runPerformanceTest = function() {
+      console.log('🚀 Running performance test...');
+      
+      const startTime = performance.now();
+      
+      // Create and render many components
+      for (let i = 0; i < 100; i++) {
+        const TestComp = MinimaJS.defineComponent(function() {
+          return `<div>Component ${i}</div>`;
+        });
+        
+        const container = document.createElement('div');
+        MinimaJS.render(TestComp, container);
+      }
+      
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+      
+      alert(`⚡ Performance Test Results:\n- Created 100 components in ${duration.toFixed(2)}ms\n- Average: ${(duration/100).toFixed(2)}ms per component`);
+      
+      console.log('📊 Performance stats:', MinimaJS.dev.getPerformanceStats());
+    };
+    
+    window.runMemoryTest = function() {
+      console.log('💾 Running memory test...');
+      
+      const initialMemory = performance.memory ? performance.memory.usedJSHeapSize : 'N/A';
+      
+      // Create state objects and clean them up
+      const states = [];
+      for (let i = 0; i < 1000; i++) {
+        states.push(MinimaJS.createState({ value: i }));
+      }
+      
+      const afterCreation = performance.memory ? performance.memory.usedJSHeapSize : 'N/A';
+      
+      // Clear references
+      states.length = 0;
+      
+      setTimeout(() => {
+        const afterCleanup = performance.memory ? performance.memory.usedJSHeapSize : 'N/A';
+        
+        alert(`💾 Memory Test Results:\nInitial: ${initialMemory}\nAfter creating 1000 states: ${afterCreation}\nAfter cleanup: ${afterCleanup}`);
+      }, 100);
+    };
+    
+    window.runDevToolsTest = function() {
+      console.log('🛠️ Testing dev tools...');
+      
+      const components = MinimaJS.dev.listComponents();
+      const stats = MinimaJS.dev.getPerformanceStats();
+      const internal = MinimaJS.dev.getInternalState();
+      
+      console.log('📋 Components:', components);
+      console.log('📊 Performance:', stats);
+      console.log('🔧 Internal state:', internal);
+      
+      alert(`🛠️ Dev Tools Test:\n- Components: ${components.length}\n- Renders: ${stats.totalRenders || 0}\n- Stores: ${Object.keys(internal.stores || {}).length}\n\nCheck console for details!`);
+    };
+  </script>
+</body>
+</html>

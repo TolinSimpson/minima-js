@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MinimaJS - Advanced Todo App</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .app {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+    
+    .header p {
+      opacity: 0.9;
+      font-size: 1.1em;
+    }
+    
+    .nav {
+      background: #f8f9fa;
+      border-bottom: 1px solid #e9ecef;
+      padding: 0;
+      display: flex;
+    }
+    
+    .nav-item {
+      flex: 1;
+      text-align: center;
+    }
+    
+    .nav-item a {
+      display: block;
+      padding: 15px 20px;
+      text-decoration: none;
+      color: #666;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s ease;
+    }
+    
+    .nav-item a:hover,
+    .nav-item a.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+      background: white;
+    }
+    
+    .content {
+      padding: 30px;
+      min-height: 400px;
+    }
+    
+    .todo-input {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+    
+    .todo-input input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+    
+    .todo-input input:focus {
+      border-color: #667eea;
+    }
+    
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+    
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #5a6fd8;
+      transform: translateY(-1px);
+    }
+    
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 14px;
+    }
+    
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+    
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+    
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+    
+    .filters {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .todo-list {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px;
+    }
+    
+    .todo-item {
+      background: white;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.3s ease;
+    }
+    
+    .todo-item:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transform: translateY(-1px);
+    }
+    
+    .todo-item.completed {
+      opacity: 0.7;
+      background: #f1f3f4;
+    }
+    
+    .todo-item.completed .todo-text {
+      text-decoration: line-through;
+    }
+    
+    .todo-checkbox {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+    
+    .todo-text {
+      flex: 1;
+      font-size: 16px;
+      line-height: 1.4;
+    }
+    
+    .todo-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .stats {
+      background: linear-gradient(45deg, #e3f2fd, #f3e5f5);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 20px;
+    }
+    
+    .stat {
+      text-align: center;
+    }
+    
+    .stat-number {
+      font-size: 2em;
+      font-weight: bold;
+      color: #667eea;
+      display: block;
+    }
+    
+    .stat-label {
+      color: #666;
+      font-size: 0.9em;
+      margin-top: 5px;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+    
+    .empty-state h3 {
+      margin-bottom: 10px;
+      color: #333;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+    
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+      
+      .header {
+        padding: 20px;
+      }
+      
+      .header h1 {
+        font-size: 2em;
+      }
+      
+      .content {
+        padding: 20px;
+      }
+      
+      .todo-input {
+        flex-direction: column;
+      }
+      
+      .filters {
+        flex-direction: column;
+      }
+      
+      .nav {
+        flex-direction: column;
+      }
+      
+      .stats {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <h1>📝 Todo Master</h1>
+      <p>Advanced Todo App built with MinimaJS</p>
+    </div>
+    
+    <nav class="nav">
+      <div class="nav-item">
+        <a href="/all" id="nav-all">📋 All Tasks</a>
+      </div>
+      <div class="nav-item">
+        <a href="/active" id="nav-active">⭐ Active</a>
+      </div>
+      <div class="nav-item">
+        <a href="/completed" id="nav-completed">✅ Completed</a>
+      </div>
+      <div class="nav-item">
+        <a href="/stats" id="nav-stats">📊 Statistics</a>
+      </div>
+    </nav>
+    
+    <main class="content">
+      <div id="app">
+        <div class="loading">Loading Todo App...</div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Load MinimaJS Framework -->
+  <script src="../src/minima.js"></script>
+  <script src="../src/minima.dev.js"></script>
+
+  <script>
+    // =========================================================================
+    // GLOBAL TODO STORE
+    // =========================================================================
+    
+    const todoStore = MinimaJS.store('todos', {
+      items: [
+        { id: 1, text: 'Welcome to MinimaJS Todo App!', completed: false, createdAt: Date.now() - 86400000 },
+        { id: 2, text: 'Try adding a new todo', completed: false, createdAt: Date.now() - 3600000 },
+        { id: 3, text: 'Mark tasks as complete', completed: true, createdAt: Date.now() - 1800000 },
+        { id: 4, text: 'Filter tasks by status', completed: false, createdAt: Date.now() - 900000 },
+        { id: 5, text: 'Check out the statistics page', completed: false, createdAt: Date.now() - 300000 }
+      ],
+      nextId: 6,
+      filter: 'all', // all, active, completed
+      newTodoText: ''
+    });
+
+    // =========================================================================
+    // TODO INPUT COMPONENT
+    // =========================================================================
+    
+    const TodoInput = MinimaJS.defineComponent(function(props) {
+      const addTodo = () => {
+        const text = todoStore.newTodoText.trim();
+        if (text) {
+          todoStore.items = [
+            ...todoStore.items,
+            {
+              id: todoStore.nextId++,
+              text: text,
+              completed: false,
+              createdAt: Date.now()
+            }
+          ];
+          todoStore.newTodoText = '';
+        }
+      };
+      
+      const updateInput = (event) => {
+        todoStore.newTodoText = event.target.value;
+      };
+      
+      const handleKeyPress = (event) => {
+        if (event.key === 'Enter') {
+          addTodo();
+        }
+      };
+      
+      return `
+        <div class="todo-input">
+          <input 
+            type="text" 
+            placeholder="What needs to be done?" 
+            value="${todoStore.newTodoText}"
+            oninput="updateInput(event)"
+            onkeypress="handleKeyPress(event)"
+          />
+          <button class="btn btn-primary" onclick="addTodo()">
+            ➕ Add Todo
+          </button>
+        </div>
+      `;
+    });
+
+    // =========================================================================
+    // TODO FILTERS COMPONENT
+    // =========================================================================
+    
+    const TodoFilters = MinimaJS.defineComponent(function(props) {
+      const setFilter = (filter) => {
+        todoStore.filter = filter;
+      };
+      
+      const clearCompleted = () => {
+        todoStore.items = todoStore.items.filter(todo => !todo.completed);
+      };
+      
+      const toggleAllComplete = () => {
+        const allCompleted = todoStore.items.every(todo => todo.completed);
+        todoStore.items = todoStore.items.map(todo => ({
+          ...todo,
+          completed: !allCompleted
+        }));
+      };
+      
+      const completedCount = todoStore.items.filter(todo => todo.completed).length;
+      
+      return `
+        <div class="filters">
+          <button 
+            class="btn btn-small ${todoStore.filter === 'all' ? 'btn-primary' : 'btn-secondary'}" 
+            onclick="setFilter('all')"
+          >
+            📋 All (${todoStore.items.length})
+          </button>
+          <button 
+            class="btn btn-small ${todoStore.filter === 'active' ? 'btn-primary' : 'btn-secondary'}" 
+            onclick="setFilter('active')"
+          >
+            ⭐ Active (${todoStore.items.filter(t => !t.completed).length})
+          </button>
+          <button 
+            class="btn btn-small ${todoStore.filter === 'completed' ? 'btn-primary' : 'btn-secondary'}" 
+            onclick="setFilter('completed')"
+          >
+            ✅ Completed (${completedCount})
+          </button>
+          <button 
+            class="btn btn-small btn-success" 
+            onclick="toggleAllComplete()"
+          >
+            ${todoStore.items.every(t => t.completed) ? '↩️ Unmark All' : '✅ Complete All'}
+          </button>
+          ${completedCount > 0 ? `
+            <button 
+              class="btn btn-small btn-danger" 
+              onclick="clearCompleted()"
+            >
+              🗑️ Clear Completed
+            </button>
+          ` : ''}
+        </div>
+      `;
+    });
+
+    // =========================================================================
+    // TODO ITEM COMPONENT
+    // =========================================================================
+    
+    const TodoItem = MinimaJS.defineComponent(function(props) {
+      const todo = props.todo;
+      
+      const toggleComplete = () => {
+        todoStore.items = todoStore.items.map(item => 
+          item.id === todo.id ? { ...item, completed: !item.completed } : item
+        );
+      };
+      
+      const deleteTodo = () => {
+        todoStore.items = todoStore.items.filter(item => item.id !== todo.id);
+      };
+      
+      const editTodo = () => {
+        const newText = prompt('Edit todo:', todo.text);
+        if (newText !== null && newText.trim()) {
+          todoStore.items = todoStore.items.map(item => 
+            item.id === todo.id ? { ...item, text: newText.trim() } : item
+          );
+        }
+      };
+      
+      return `
+        <div class="todo-item ${todo.completed ? 'completed' : ''}">
+          <input 
+            type="checkbox" 
+            class="todo-checkbox"
+            ${todo.completed ? 'checked' : ''}
+            onchange="toggleComplete()"
+          />
+          <div class="todo-text">${todo.text}</div>
+          <div class="todo-actions">
+            <button class="btn btn-small btn-secondary" onclick="editTodo()">
+              ✏️ Edit
+            </button>
+            <button class="btn btn-small btn-danger" onclick="deleteTodo()">
+              🗑️ Delete
+            </button>
+          </div>
+        </div>
+      `;
+    });
+
+    // =========================================================================
+    // TODO LIST COMPONENT
+    // =========================================================================
+    
+    const TodoList = MinimaJS.defineComponent(function(props) {
+      const getFilteredTodos = () => {
+        switch (todoStore.filter) {
+          case 'active':
+            return todoStore.items.filter(todo => !todo.completed);
+          case 'completed':
+            return todoStore.items.filter(todo => todo.completed);
+          default:
+            return todoStore.items;
+        }
+      };
+      
+      const filteredTodos = getFilteredTodos();
+      
+      if (filteredTodos.length === 0) {
+        const emptyMessages = {
+          all: 'No todos yet. Add one above to get started!',
+          active: 'No active todos. Great job! 🎉',
+          completed: 'No completed todos yet. Get to work! 💪'
+        };
+        
+        return `
+          <div class="todo-list">
+            <div class="empty-state">
+              <h3>📭 Nothing Here</h3>
+              <p>${emptyMessages[todoStore.filter] || emptyMessages.all}</p>
+            </div>
+          </div>
+        `;
+      }
+      
+      const todoItemsHtml = filteredTodos
+        .sort((a, b) => b.createdAt - a.createdAt) // Newest first
+        .map(todo => TodoItem({ todo })._template || '')
+        .join('');
+      
+      return `
+        <div class="todo-list">
+          ${todoItemsHtml}
+        </div>
+      `;
+    });
+
+    // =========================================================================
+    // STATISTICS COMPONENT
+    // =========================================================================
+    
+    const Statistics = MinimaJS.defineComponent(function(props) {
+      const total = todoStore.items.length;
+      const completed = todoStore.items.filter(t => t.completed).length;
+      const active = total - completed;
+      const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+      
+      // Calculate productivity metrics
+      const today = new Date();
+      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+      const todayTodos = todoStore.items.filter(t => t.createdAt >= todayStart);
+      const todayCompleted = todayTodos.filter(t => t.completed).length;
+      
+      const thisWeek = todayStart - (6 * 24 * 60 * 60 * 1000);
+      const weekTodos = todoStore.items.filter(t => t.createdAt >= thisWeek);
+      const weekCompleted = weekTodos.filter(t => t.completed).length;
+      
+      return `
+        <div>
+          <h2>📊 Your Productivity Stats</h2>
+          
+          <div class="stats">
+            <div class="stat">
+              <span class="stat-number">${total}</span>
+              <div class="stat-label">Total Tasks</div>
+            </div>
+            <div class="stat">
+              <span class="stat-number">${completed}</span>
+              <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat">
+              <span class="stat-number">${active}</span>
+              <div class="stat-label">Active</div>
+            </div>
+            <div class="stat">
+              <span class="stat-number">${completionRate}%</span>
+              <div class="stat-label">Completion Rate</div>
+            </div>
+          </div>
+          
+          <div class="stats">
+            <div class="stat">
+              <span class="stat-number">${todayTodos.length}</span>
+              <div class="stat-label">Added Today</div>
+            </div>
+            <div class="stat">
+              <span class="stat-number">${todayCompleted}</span>
+              <div class="stat-label">Completed Today</div>
+            </div>
+            <div class="stat">
+              <span class="stat-number">${weekTodos.length}</span>
+              <div class="stat-label">This Week</div>
+            </div>
+            <div class="stat">
+              <span class="stat-number">${weekCompleted}</span>
+              <div class="stat-label">Completed This Week</div>
+            </div>
+          </div>
+          
+          <div style="margin-top: 30px;">
+            <h3>🎯 Productivity Insights</h3>
+            <ul style="list-style: none; padding: 0;">
+              <li style="padding: 10px; background: #f8f9fa; margin: 5px 0; border-radius: 6px;">
+                ${completionRate >= 80 ? '🌟 Excellent! You\'re crushing your goals!' : 
+                  completionRate >= 60 ? '👍 Good job! Keep up the momentum!' :
+                  completionRate >= 40 ? '📈 You\'re making progress!' :
+                  '💪 Time to focus and get things done!'}
+              </li>
+              <li style="padding: 10px; background: #f8f9fa; margin: 5px 0; border-radius: 6px;">
+                ${todayCompleted > 0 ? `✅ You completed ${todayCompleted} task${todayCompleted > 1 ? 's' : ''} today!` :
+                  '📅 No tasks completed today yet. You can do it!'}
+              </li>
+              <li style="padding: 10px; background: #f8f9fa; margin: 5px 0; border-radius: 6px;">
+                ${active === 0 ? '🎉 All caught up! Time to add more goals!' :
+                  `🔥 ${active} task${active > 1 ? 's' : ''} remaining. You got this!`}
+              </li>
+            </ul>
+          </div>
+        </div>
+      `;
+    });
+
+    // =========================================================================
+    // MAIN APP PAGES
+    // =========================================================================
+    
+    const AllTodosPage = MinimaJS.defineComponent(function(props) {
+      todoStore.filter = 'all';
+      
+      return `
+        <div>
+          ${TodoInput({})._template || ''}
+          ${TodoFilters({})._template || ''}
+          ${TodoList({})._template || ''}
+        </div>
+      `;
+    });
+    
+    const ActiveTodosPage = MinimaJS.defineComponent(function(props) {
+      todoStore.filter = 'active';
+      
+      return `
+        <div>
+          ${TodoInput({})._template || ''}
+          ${TodoFilters({})._template || ''}
+          ${TodoList({})._template || ''}
+        </div>
+      `;
+    });
+    
+    const CompletedTodosPage = MinimaJS.defineComponent(function(props) {
+      todoStore.filter = 'completed';
+      
+      return `
+        <div>
+          ${TodoFilters({})._template || ''}
+          ${TodoList({})._template || ''}
+        </div>
+      `;
+    });
+    
+    const StatsPage = MinimaJS.defineComponent(function(props) {
+      return Statistics({})._template || '';
+    });
+
+    // =========================================================================
+    // ROUTER SETUP
+    // =========================================================================
+    
+    const routes = [
+      { path: '/', component: AllTodosPage },
+      { path: '/all', component: AllTodosPage },
+      { path: '/active', component: ActiveTodosPage },
+      { path: '/completed', component: CompletedTodosPage },
+      { path: '/stats', component: StatsPage }
+    ];
+
+    // =========================================================================
+    // NAVIGATION HIGHLIGHT
+    // =========================================================================
+    
+    function updateNavigation() {
+      // Remove active class from all nav items
+      document.querySelectorAll('.nav-item a').forEach(link => {
+        link.classList.remove('active');
+      });
+      
+      // Add active class to current page
+      const currentPath = window.location.pathname;
+      const navMap = {
+        '/': 'nav-all',
+        '/all': 'nav-all',
+        '/active': 'nav-active',
+        '/completed': 'nav-completed',
+        '/stats': 'nav-stats'
+      };
+      
+      const activeNavId = navMap[currentPath] || 'nav-all';
+      const activeLink = document.getElementById(activeNavId);
+      if (activeLink) {
+        activeLink.classList.add('active');
+      }
+    }
+
+    // =========================================================================
+    // GLOBAL FUNCTION DECLARATIONS
+    // =========================================================================
+    
+    // These functions need to be globally accessible for inline event handlers
+    window.updateInput = (event) => {
+      todoStore.newTodoText = event.target.value;
+    };
+    
+    window.handleKeyPress = (event) => {
+      if (event.key === 'Enter') {
+        window.addTodo();
+      }
+    };
+    
+    window.addTodo = () => {
+      const text = todoStore.newTodoText.trim();
+      if (text) {
+        todoStore.items = [
+          ...todoStore.items,
+          {
+            id: todoStore.nextId++,
+            text: text,
+            completed: false,
+            createdAt: Date.now()
+          }
+        ];
+        todoStore.newTodoText = '';
+      }
+    };
+    
+    window.setFilter = (filter) => {
+      todoStore.filter = filter;
+    };
+    
+    window.clearCompleted = () => {
+      todoStore.items = todoStore.items.filter(todo => !todo.completed);
+    };
+    
+    window.toggleAllComplete = () => {
+      const allCompleted = todoStore.items.every(todo => todo.completed);
+      todoStore.items = todoStore.items.map(todo => ({
+        ...todo,
+        completed: !allCompleted
+      }));
+    };
+    
+    window.toggleComplete = () => {
+      // This will be handled by individual todo items
+      console.log('Toggle complete called');
+    };
+    
+    window.deleteTodo = () => {
+      // This will be handled by individual todo items
+      console.log('Delete todo called');
+    };
+    
+    window.editTodo = () => {
+      // This will be handled by individual todo items
+      console.log('Edit todo called');
+    };
+
+    // =========================================================================
+    // APP INITIALIZATION
+    // =========================================================================
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🚀 Starting MinimaJS Advanced Todo App');
+      
+          // Set up router navigation guards
+    MinimaJS.router.afterEach((to, from) => {
+      updateNavigation();
+    });
+    
+    // Initialize router
+    MinimaJS.router.init(routes, document.getElementById('app'));
+    
+    // Update navigation on route changes
+    window.addEventListener('popstate', updateNavigation);
+    
+    // Set initial navigation state
+    setTimeout(updateNavigation, 100);
+      
+      console.log('✅ Todo App initialized successfully');
+      console.log('💡 Try navigating between pages using the tabs above');
+    });
+  </script>
+</body>
+</html>
