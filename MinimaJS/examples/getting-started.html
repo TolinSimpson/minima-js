@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MinimaJS - Getting Started</title>
+  <style>
+    body { 
+      font-family: system-ui, -apple-system, sans-serif; 
+      max-width: 800px; 
+      margin: 40px auto; 
+      padding: 20px;
+      line-height: 1.6;
+      color: #333;
+    }
+    .demo { 
+      margin: 30px 0; 
+      padding: 20px; 
+      border: 2px solid #e1e5e9; 
+      border-radius: 8px;
+      background: #f8f9fa;
+    }
+    .demo h3 { 
+      margin-top: 0; 
+      color: #0366d6;
+      border-bottom: 2px solid #0366d6;
+      padding-bottom: 5px;
+    }
+    .counter { 
+      text-align: center; 
+      margin: 20px 0;
+    }
+    .counter-display { 
+      font-size: 2em; 
+      font-weight: bold; 
+      margin: 15px 0;
+      color: #0366d6;
+    }
+    .counter button { 
+      margin: 0 10px; 
+      padding: 10px 20px; 
+      font-size: 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background: #0366d6;
+      color: white;
+    }
+    .counter button:hover { 
+      background: #0256cc;
+    }
+    .todo-app {
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    .todo-input {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .todo-input input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .todo-input button {
+      padding: 8px 16px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .todo-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .todo-item.done {
+      opacity: 0.6;
+      text-decoration: line-through;
+    }
+    .todo-item button {
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .llm-demo {
+      border-color: #28a745;
+    }
+    .llm-demo h3 {
+      color: #28a745;
+      border-bottom-color: #28a745;
+    }
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 10px 0;
+      background: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .form-field {
+      margin: 10px 0;
+    }
+    .form-field label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .form-field input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    .form-actions {
+      margin-top: 20px;
+    }
+    .form-actions button {
+      margin-right: 10px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .form-actions button[type="submit"] {
+      background: #0366d6;
+      color: white;
+    }
+    .form-actions button[type="button"] {
+      background: #6c757d;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h1>MinimaJS - Getting Started</h1>
+  <p><strong>Ultra-lightweight React alternative with the shortest API syntax</strong></p>
+
+  <div class="demo">
+    <h3>1. Basic Counter (React-like Hooks)</h3>
+    <div id="counter-demo"></div>
+  </div>
+
+  <div class="demo">
+    <h3>2. Todo App (Template Syntax)</h3>
+    <div id="todo-demo"></div>
+  </div>
+
+  <div class="demo llm-demo">
+    <h3>3. LLM-Optimized APIs (One-liners)</h3>
+    <div id="llm-demo"></div>
+  </div>
+
+  <script type="module">
+    // Import MinimaJS - works with ES modules
+    import { 
+      // Core hooks and elements
+      useState, div, h1, h2, button, span,
+      // Template syntax  
+      html, input,
+      // LLM-optimized APIs
+      quickForm, quickCard, $div, $button,
+      // Rendering
+      render
+    } from '../src/minima.js';
+
+    // =========================================================================
+    // 1. Basic Counter - Shows React-like hooks
+    // =========================================================================
+    
+    const Counter = () => {
+      const [count, setCount] = useState(0);
+      
+      return div({ className: 'counter' }, [
+        div({ className: 'counter-display' }, count),
+        button({ onClick: () => setCount(count - 1) }, '−'),
+        button({ onClick: () => setCount(0) }, 'Reset'),
+        button({ onClick: () => setCount(count + 1) }, '+')
+      ]);
+    };
+
+    // =========================================================================
+    // 2. Todo App - Shows HTML template syntax  
+    // =========================================================================
+    
+    const TodoApp = () => {
+      const [todos, setTodos] = useState([
+        { id: 1, text: 'Try MinimaJS', done: true },
+        { id: 2, text: 'Build something awesome', done: false }
+      ]);
+      const [input, setInput] = useState('');
+      
+      const addTodo = () => {
+        if (input.trim()) {
+          setTodos([...todos, { 
+            id: Date.now(), 
+            text: input, 
+            done: false 
+          }]);
+          setInput('');
+        }
+      };
+      
+      const toggleTodo = (id) => {
+        setTodos(todos.map(todo => 
+          todo.id === id ? { ...todo, done: !todo.done } : todo
+        ));
+      };
+      
+      const removeTodo = (id) => {
+        setTodos(todos.filter(todo => todo.id !== id));
+      };
+      
+      // Using HTML template syntax - XSS-safe by default
+      return html`
+        <div class="todo-app">
+          <div class="todo-input">
+            <input 
+              value="${input}" 
+              oninput="${e => setInput(e.target.value)}"
+              onkeypress="${e => e.key === 'Enter' && addTodo()}"
+              placeholder="Add a new todo..."
+            >
+            <button onclick="${addTodo}">Add</button>
+          </div>
+          ${todos.map(todo => html`
+            <div class="todo-item ${todo.done ? 'done' : ''}" key="${todo.id}">
+              <input 
+                type="checkbox" 
+                checked="${todo.done}" 
+                onchange="${() => toggleTodo(todo.id)}"
+              >
+              <span>${todo.text}</span>
+              <button onclick="${() => removeTodo(todo.id)}">×</button>
+            </div>
+          `)}
+        </div>
+      `;
+    };
+
+    // =========================================================================
+    // 3. LLM-Optimized APIs - Shows AI-friendly patterns
+    // =========================================================================
+    
+    const LLMDemo = () => {
+      const [formData, setFormData] = useState({});
+      
+      return div([
+        h2('AI-Friendly APIs'),
+        
+        // One-line form builder
+        quickForm({
+          fields: [
+            'name',
+            'email', 
+            { name: 'message', type: 'textarea' }
+          ],
+          onSubmit: (values) => {
+            setFormData(values);
+            console.log('Form submitted:', values);
+            alert('Form submitted! Check console for data.');
+          },
+          showReset: true
+        }),
+        
+        // One-line card builder
+        quickCard(
+          'Submitted Data',
+          div([
+            div(`Name: ${formData.name || 'Not provided'}`),
+            div(`Email: ${formData.email || 'Not provided'}`),
+            div(`Message: ${formData.message || 'Not provided'}`)
+          ])
+        ),
+        
+        // Fluent chain syntax (great for LLMs)
+        $div()
+          .class('card')
+          .child($button().text('Chain Example').onClick(() => alert('Built with fluent chains!')))
+          .build()
+      ]);
+    };
+
+    // =========================================================================
+    // Render all demos
+    // =========================================================================
+    
+    render(Counter(), document.getElementById('counter-demo'));
+    render(TodoApp(), document.getElementById('todo-demo'));
+    render(LLMDemo(), document.getElementById('llm-demo'));
+    
+    console.log('MinimaJS demos loaded!');
+    console.log('Bundle size: ~18KB total');
+    console.log('Zero dependencies');
+    console.log('LLM-optimized APIs available');
+  </script>
+</body>
+</html>

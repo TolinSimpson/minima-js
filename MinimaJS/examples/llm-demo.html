@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MinimaJS LLM Layer Demo</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .demo-section { margin: 40px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+    .demo-title { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+    
+    /* Template builders styles */
+    .form-field { margin: 10px 0; }
+    .form-actions { margin-top: 20px; }
+    .form-actions button { margin-right: 10px; }
+    
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; }
+    .modal-content { background: white; padding: 20px; border-radius: 8px; max-width: 500px; width: 90%; }
+    .modal-close { float: right; background: none; border: none; font-size: 24px; cursor: pointer; }
+    
+    .card { border: 1px solid #ddd; border-radius: 8px; margin: 10px 0; }
+    .card-header { padding: 15px; background: #f8f9fa; border-bottom: 1px solid #ddd; }
+    .card-body { padding: 15px; }
+    .card-actions { padding: 15px; border-top: 1px solid #ddd; }
+    
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+    .data-table th { background: #f8f9fa; }
+    
+    /* Pattern macros styles */
+    .todo-app { max-width: 400px; }
+    .todo-input { display: flex; gap: 10px; margin: 20px 0; }
+    .todo-input input { flex: 1; padding: 8px; }
+    .todo-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-bottom: 1px solid #eee; }
+    .todo-item.done { opacity: 0.6; text-decoration: line-through; }
+    
+    .counter-app { text-align: center; max-width: 300px; }
+    .counter-display { font-size: 48px; font-weight: bold; margin: 20px 0; color: #007bff; }
+    .counter-controls button { margin: 0 10px; padding: 10px 20px; }
+    
+    /* Chain syntax demo */
+    .chain-demo .card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+    
+    /* Page builder demo */
+    .page-layout { min-height: 400px; display: flex; flex-direction: column; }
+    .page-header { background: #007bff; color: white; padding: 20px; }
+    .page-body { flex: 1; display: flex; }
+    .page-sidebar { background: #f8f9fa; padding: 20px; width: 200px; }
+    .page-main { flex: 1; padding: 20px; }
+    .page-footer { background: #6c757d; color: white; padding: 10px 20px; }
+    .navbar { display: flex; justify-content: space-between; align-items: center; }
+    .navbar-links a { color: white; text-decoration: none; margin-left: 20px; }
+  </style>
+</head>
+<body>
+  <h1>MinimaJS LLM Layer Demo</h1>
+  <p><strong>AI-optimized APIs for faster development</strong></p>
+
+  <div class="demo-section">
+    <h2 class="demo-title">1. Template Builders - One-liner UI patterns</h2>
+    <div id="template-demo"></div>
+  </div>
+
+  <div class="demo-section">
+    <h2 class="demo-title">2. Chain Syntax - Fluent API</h2>
+    <div id="chain-demo" class="chain-demo"></div>
+  </div>
+
+  <div class="demo-section">
+    <h2 class="demo-title">3. Pattern Macros - Complete features</h2>
+    <div id="pattern-demo"></div>
+  </div>
+
+  <div class="demo-section">
+    <h2 class="demo-title">4. Page Builder - Type-guided construction</h2>
+    <div id="page-demo"></div>
+  </div>
+
+  <script type="module">
+    import { 
+      quickForm, quickList, quickModal, quickCard, quickTable,
+      $, $div, $span, $p, $button, $input, $form, $h1, $h2, $h3,
+      createApp as llmCreateApp,
+      safeRender, safeComponent, tryRender,
+      page, builder,
+      div, h3, p, button, useState
+    } from './src/minima-llm.js';
+
+    // =========================================================================
+    // 1. Template Builders Demo
+    // =========================================================================
+    
+    const TemplateDemo = () => {
+      const [showModal, setShowModal] = useState(false);
+      const [formData, setFormData] = useState({});
+      
+      // Sample data for table
+      const users = [
+        { id: 1, name: 'Alice', email: 'alice@example.com', role: 'Admin' },
+        { id: 2, name: 'Bob', email: 'bob@example.com', role: 'User' },
+        { id: 3, name: 'Carol', email: 'carol@example.com', role: 'Editor' }
+      ];
+      
+      const tableColumns = [
+        { key: 'name', header: 'Name' },
+        { key: 'email', header: 'Email' },
+        { key: 'role', header: 'Role', render: (value) => `🔹 ${value}` }
+      ];
+      
+      return div([
+        h3('Quick Form'),
+        quickForm({
+          fields: ['name', 'email', { name: 'password', type: 'password' }],
+          onSubmit: (values) => {
+            setFormData(values);
+            console.log('Form submitted:', values);
+          },
+          showReset: true
+        }),
+        
+        p(`Last form data: ${JSON.stringify(formData)}`),
+        
+        h3('Quick List'),
+        quickList(['React', 'Vue', 'MinimaJS'], (item, index) => 
+          `${index + 1}. ${item} ${item === 'MinimaJS' ? '(featured)' : ''}`
+        ),
+        
+        h3('Quick Card'),
+        quickCard(
+          'User Profile',
+          p('This is a sample card content with built-in styling.'),
+          [
+            button({ onClick: () => setShowModal(true) }, 'Open Modal'),
+            button('Save')
+          ]
+        ),
+        
+        h3('Quick Table'),
+        quickTable(users, tableColumns),
+        
+        quickModal(showModal, 
+          div([
+            h3('Sample Modal'),
+            p('This modal was created with quickModal()'),
+            p('Click outside or the × to close')
+          ]),
+          {
+            showClose: true,
+            onClose: () => setShowModal(false)
+          }
+        )
+      ]);
+    };
+
+    // =========================================================================
+    // 2. Chain Syntax Demo
+    // =========================================================================
+    
+    const ChainDemo = () => {
+      const [clicks, setClicks] = useState(0);
+      
+      // Fluent chain syntax - very LLM friendly!
+      const card = $div()
+        .class('card')
+        .child(
+          $h3()
+            .text(`Chain Demo - ${clicks} clicks`)
+            .build()
+        )
+        .child(
+          $p()
+            .text('This card was built using fluent chain syntax')
+            .build()
+        )
+        .child(
+          $button()
+            .text('Click me!')
+            .onClick(() => setClicks(clicks + 1))
+            .build()
+        )
+        .build();
+      
+      return div([
+        p('Fluent chain syntax makes it easy for LLMs to build UI:'),
+        card
+      ]);
+    };
+
+    // =========================================================================
+    // 3. Pattern Macros Demo
+    // =========================================================================
+    
+    const PatternDemo = () => {
+      return div([
+        h3('Complete Todo App (one function call)'),
+        llmCreateApp.todo({
+          initialTodos: [
+            { id: 1, text: 'Try MinimaJS', done: true },
+            { id: 2, text: 'Build something awesome', done: false }
+          ]
+        }),
+        
+        h3('Complete Counter App'),
+        llmCreateApp.counter({
+          title: 'LLM Counter',
+          initialValue: 5,
+          step: 2
+        })
+      ]);
+    };
+
+    // =========================================================================
+    // 4. Page Builder Demo
+    // =========================================================================
+    
+    const PageDemo = () => {
+      return page()
+        .header(nav => nav
+          .brand('MinimaJS')
+          .links(['Home', 'Docs', 'Examples'])
+        )
+        .main(content => content
+          .section(h3('Welcome to Page Builder'))
+          .section(p('This entire page layout was built with the type-guided page builder'))
+        )
+        .sidebar(div([
+          h3('Navigation'),
+          p('• Template Builders'),
+          p('• Chain Syntax'),
+          p('• Pattern Macros')
+        ]))
+        .footer(footer => footer
+          .text('© 2024 MinimaJS')
+          .links([
+            { href: '#github', text: 'GitHub' },
+            { href: '#docs', text: 'Documentation' }
+          ])
+        )
+        .build();
+    };
+
+    // Render all demos
+    safeRender(TemplateDemo(), 'template-demo');
+    safeRender(ChainDemo(), 'chain-demo');
+    safeRender(PatternDemo(), 'pattern-demo');
+    safeRender(PageDemo(), 'page-demo');
+    
+    console.log('MinimaJS LLM Layer loaded!');
+    console.log('Available APIs:', {
+      'Template Builders': 'quickForm, quickList, quickModal, quickCard, quickTable',
+      'Chain Syntax': '$div(), $button(), etc.',
+      'Pattern Macros': 'llmCreateApp.todo(), llmCreateApp.counter()',
+      'Error Recovery': 'safeRender(), safeComponent(), tryRender()',
+      'Page Builder': 'page().header().main().footer()'
+    });
+  </script>
+</body>
+</html>

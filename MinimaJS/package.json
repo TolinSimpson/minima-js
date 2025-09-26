@@ -1,60 +1,99 @@
 {
-  "name": "minimajs",
-  "version": "1.1.0",
-  "description": "Ultra-minimalist JavaScript framework - Less than 5KB, zero dependencies, universal browser support",
+  "name": "@minimafjs/framework",
+  "version": "1.0.0",
+  "description": "Ultra-lightweight modern web framework - React alternative with shortest API syntax, zero dependencies, built-in SSR, and LLM-optimized development experience",
   "main": "src/minima.js",
-  "scripts": {
-    "dev": "node src/start-dev.js",
-    "start": "node src/start-dev.js",
-    "serve": "node src/start-dev.js",
-    "test": "node test-runner.js",
-    "test:manual": "echo \"Open http://localhost:8080/tests/framework-tests.html after running 'npm run dev'\"",
-    "test:todo": "echo \"Open http://localhost:8080/tests/todo-app-test.html after running 'npm run dev'\"",
-    "build": "echo \"No build step required - MinimaJS runs directly in browsers!\""
-  },
-  "bin": {
-    "minima-dev": "./src/start-dev.js"
+  "module": "src/minima.js",
+  "type": "module",
+  "types": "src/minima.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/minima.d.ts",
+      "import": "./src/minima.js",
+      "development": "./src/minima.js",
+      "production": "./dist/minima.min.js"
+    },
+    "./core": {
+      "import": "./lib/minima-core.js",
+      "production": "./dist/minima-core.min.js"
+    },
+    "./template": {
+      "import": "./lib/minima-template.js", 
+      "production": "./dist/minima-template.min.js"
+    },
+    "./component": {
+      "import": "./lib/minima-component.js",
+      "production": "./dist/minima-component.min.js"
+    },
+    "./ssr": {
+      "import": "./lib/minima-ssr.js",
+      "production": "./dist/minima-ssr.min.js"
+    },
+    "./api": {
+      "import": "./lib/minima-api.js",
+      "production": "./dist/minima-api.min.js"
+    },
+    "./llm": {
+      "import": "./lib/minima-llm.js",
+      "production": "./dist/minima-llm.min.js"
+    }
   },
   "files": [
-    "src/minima.js",
-    "src/minima.dev.js", 
-    "src/start-dev.js",
-    "examples/",
-    "docs/",
-    "tests/"
+    "src/",
+    "lib/",
+    "dist/",
+    "README.md",
+    "LICENSE"
   ],
+  "scripts": {
+    "build": "npm run build:minify",
+    "build:minify": "node scripts/minify.js",
+    "test": "node examples/minima.test.js",
+    "dev": "python -m http.server 8080 || npx serve .",
+    "prepublishOnly": "npm run build && npm test",
+    "size": "node -e \"console.log('Bundle sizes:'); require('fs').readdirSync('dist').forEach(f => console.log(f + ':', Math.round(require('fs').statSync('dist/' + f).size/1024) + 'KB'))\""
+  },
   "keywords": [
-    "javascript",
     "framework",
-    "minimalist",
-    "virtual-dom",
-    "components",
+    "virtual-dom", 
     "reactive",
-    "spa",
-    "router",
-    "no-build",
-    "zero-dependencies"
+    "lightweight",
+    "zero-dependencies",
+    "shortest-api",
+    "modern",
+    "ssr",
+    "react-alternative",
+    "vue-alternative",
+    "llm-optimized",
+    "ai-friendly",
+    "typescript",
+    "hooks",
+    "components",
+    "templates",
+    "18kb"
   ],
-  "author": "MinimaJS Team",
+  "author": {
+    "name": "MinimaJS Team"
+  },
   "license": "MIT",
+  "homepage": "https://github.com/minimajs/framework#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/minimajs/minimajs.git"
+    "url": "https://github.com/minimajs/framework.git"
   },
   "bugs": {
-    "url": "https://github.com/minimajs/minimajs/issues"
+    "url": "https://github.com/minimajs/framework/issues"
   },
-  "homepage": "https://minimajs.dev",
-  "documentation": "https://minimajs.dev/docs/",
+  "browser": "dist/minima.min.js",
+  "unpkg": "dist/minima.min.js",
+  "jsdelivr": "dist/minima.min.js",
+  "dependencies": {},
+  "devDependencies": {},
+  "peerDependencies": {},
   "engines": {
     "node": ">=14.0.0"
   },
-  "devDependencies": {},
-  "dependencies": {},
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead",
-    "not ie <= 11"
-  ]
+  "publishConfig": {
+    "access": "public"
+  }
 }
