@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [14.x, 16.x, 18.x, 20.x]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      working-directory: MinimaJS
+      run: npm ci
+
+    - name: Run tests
+      working-directory: MinimaJS
+      run: npm test
+
+    - name: Check bundle size
+      working-directory: MinimaJS
+      run: npm run size
+
+    - name: Build minified versions
+      working-directory: MinimaJS
+      run: npm run build

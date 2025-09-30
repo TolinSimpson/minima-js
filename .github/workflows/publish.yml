@@ -25,15 +25,19 @@ jobs:
           scope: '@tolinsimpson'
 
       - name: Install dependencies
+        working-directory: MinimaJS
         run: npm ci
 
       - name: Verify package
+        working-directory: MinimaJS
         run: npm pack --dry-run
 
       - name: Build package
+        working-directory: MinimaJS
         run: npm run build
 
       - name: Publish to GitHub Packages
+        working-directory: MinimaJS
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
