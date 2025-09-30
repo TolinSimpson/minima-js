@@ -25,7 +25,6 @@ jobs:
 
     - name: Install dependencies
       run: npm ci
-      if: hashFiles('package-lock.json') != ''
       
     - name: Run tests
       run: npm test
@@ -51,11 +50,25 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
         
     - name: Install dependencies
-      run: npm ci || echo "No package-lock.json found"
-      
+      run: npm ci
+
+    - name: Verify package-lock.json exists
+      run: |
+        if [ ! -f "package-lock.json" ]; then
+          echo "Error: package-lock.json not found"
+          exit 1
+        fi
+
     - name: Build
       run: npm run build
-      
+
+    - name: Verify build artifacts
+      run: |
+        if [ ! -f "dist/minima.min.js" ]; then
+          echo "Error: Build failed - dist/minima.min.js not found"
+          exit 1
+        fi
+
     - name: Publish to NPM
       run: npm publish
       env:

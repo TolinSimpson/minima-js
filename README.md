@@ -2,9 +2,11 @@
 
 **Ultra-lightweight React alternative with the shortest API syntax, zero dependencies, and LLM-optimized development experience.**
 
-[![npm version](https://badge.fury.io/js/@minimafjs%2Fframework.svg)](https://www.npmjs.com/package/@minimafjs/framework)
+> **📦 Published to:** [GitHub Packages](https://github.com/tolinsimpson/minima-js/packages)
+
+[![GitHub Package](https://img.shields.io/badge/GitHub-Package-blue.svg)](https://github.com/tolinsimpson/minima-js/packages)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Zero Dependencies](https://img.shields.io/badge/dependencies-0-green.svg)](https://www.npmjs.com/package/@minimafjs/framework)
+[![Zero Dependencies](https://img.shields.io/badge/dependencies-0-green.svg)](https://github.com/tolinsimpson/minima-js)
 
 ## Why MinimaJS?
 
@@ -18,13 +20,13 @@
 ## Quick Start
 
 ```bash
-npm install @minimafjs/framework
+npm install @tolinsimpson/minimajs
 ```
 
 ### Hello World
 
 ```javascript
-import { div, h1, button, useState, app } from '@minimafjs/framework';
+import { div, h1, button, useState, app } from '@tolinsimpson/minimajs';
 
 const Counter = () => {
   const [count, setCount] = useState(0);
@@ -41,7 +43,7 @@ app(Counter, 'app'); // Mounts to #app
 ### Template Syntax (HTML-like)
 
 ```javascript
-import { html, useState, app } from '@minimafjs/framework';
+import { html, useState, app } from '@tolinsimpson/minimajs';
 
 const TodoApp = () => {
   const [todos, setTodos] = useState([]);
@@ -68,7 +70,7 @@ const TodoApp = () => {
 ### Components & Hooks
 
 ```javascript
-import { useState, useEffect, div, p } from '@minimafjs/framework';
+import { useState, useEffect, div, p } from '@tolinsimpson/minimajs';
 
 const UserProfile = ({ userId }) => {
   const [user, setUser] = useState(null);
@@ -94,7 +96,7 @@ const UserProfile = ({ userId }) => {
 ### State Management
 
 ```javascript
-import { useState, toggle, counter, inputState } from '@minimafjs/framework';
+import { useState, toggle, counter, inputState } from '@tolinsimpson/minimajs';
 
 const MyComponent = () => {
   // Basic state
@@ -124,7 +126,7 @@ Perfect for AI code generation with predictable patterns:
 ### Template Builders
 
 ```javascript
-import { quickForm, quickTable, quickModal } from '@minimafjs/framework';
+import { quickForm, quickTable, quickModal } from '@tolinsimpson/minimajs';
 
 // Complete form in one line
 const form = quickForm({
@@ -146,7 +148,7 @@ const modal = quickModal(isOpen, content, { onClose: () => setOpen(false) });
 ### Chain Syntax
 
 ```javascript  
-import { $div, $button, $input } from '@minimafjs/framework';
+import { $div, $button, $input } from '@tolinsimpson/minimajs';
 
 // Fluent chain building - perfect for LLMs
 const card = $div()
@@ -160,7 +162,7 @@ const card = $div()
 ### Pattern Macros
 
 ```javascript
-import { llmCreateApp } from '@minimafjs/framework';
+import { llmCreateApp } from '@tolinsimpson/minimajs';
 
 // Complete todo app in one call
 const todoApp = llmCreateApp.todo({
@@ -178,7 +180,7 @@ const counter = llmCreateApp.counter({
 ## Server-Side Rendering
 
 ```javascript
-import { renderToString, hydrate } from '@minimafjs/framework';
+import { renderToString, hydrate } from '@tolinsimpson/minimajs';
 
 // Server
 const html = renderToString(App, { props });
@@ -192,64 +194,64 @@ hydrate(App, document.getElementById('app'), { props });
 
 ```javascript
 // Full framework
-import { div, useState } from '@minimafjs/framework';
+import { div, useState } from '@tolinsimpson/minimajs';
 
 // Core only (9KB)
-import { createElement, useState, render } from '@minimafjs/framework/core';
+import { createElement, useState, render } from '@tolinsimpson/minimajs/core';
 
 // Templates only (3KB) 
-import { html } from '@minimafjs/framework/template';
+import { html } from '@tolinsimpson/minimajs/template';
 
 // Components only (2KB)
-import { defineComponent } from '@minimafjs/framework/component';
+import { defineComponent } from '@tolinsimpson/minimajs/component';
 
 // SSR only (4KB)
-import { renderToString } from '@minimafjs/framework/ssr';
+import { renderToString } from '@tolinsimpson/minimajs/ssr';
 
 // LLM helpers only (9KB)
-import { quickForm, $div } from '@minimafjs/framework/llm';
+import { quickForm, $div } from '@tolinsimpson/minimajs/llm';
 ```
 
 ## Module Features
 
 MinimaJS is built as modular components that can be used independently:
 
-### Core Module (`@minimafjs/framework/core`)
+### Core Module (`@tolinsimpson/minimajs/core`)
 - **Virtual DOM** with efficient diffing algorithm
 - **Hooks system** (useState, useEffect, useContext)
 - **Component lifecycle** management
 - **Event delegation** for optimal performance
 - **Memory management** with automatic cleanup
 
-### Template Module (`@minimafjs/framework/template`)
+### Template Module (`@tolinsimpson/minimajs/template`)
 - **HTML template literals** with tagged template strings
 - **XSS protection** built-in with automatic sanitization
 - **Conditional rendering** helpers (when, unless)
 - **List rendering** with optimized mapping
 - **Dynamic attributes** and class binding
 
-### Component Module (`@minimafjs/framework/component`)
+### Component Module (`@tolinsimpson/minimajs/component`)
 - **Advanced component system** with props validation
 - **Higher-order components** (memo, withProps)
 - **Component composition** patterns
 - **Render props** and children patterns
 - **Error boundaries** for robust applications
 
-### SSR Module (`@minimafjs/framework/ssr`)
+### SSR Module (`@tolinsimpson/minimajs/ssr`)
 - **Server-side rendering** with hydration
 - **Static site generation** capabilities
 - **SEO optimization** with meta tag support
 - **Streaming rendering** for improved performance
 - **Universal routing** for client/server compatibility
 
-### API Module (`@minimafjs/framework/api`)
+### API Module (`@tolinsimpson/minimajs/api`)
 - **Shorthand element creators** (div, span, button, etc.)
 - **State helpers** (toggle, counter, inputState, formState)
 - **Animation utilities** (fade, slide transitions)
 - **Routing helpers** (route, link, navigate)
 - **Context providers** for global state
 
-### LLM Module (`@minimafjs/framework/llm`)
+### LLM Module (`@tolinsimpson/minimajs/llm`)
 - **AI-optimized builders** (quickForm, quickTable, quickModal)
 - **Fluent chain syntax** ($div().class().child().build())
 - **Pattern macros** for common UI patterns
@@ -267,7 +269,7 @@ MinimaJS is built as modular components that can be used independently:
 Creates a virtual DOM node.
 
 ```javascript
-import { createElement } from '@minimafjs/framework/core';
+import { createElement } from '@tolinsimpson/minimajs/core';
 
 const vnode = createElement('div', { id: 'app' }, 'Hello World');
 // or
@@ -278,7 +280,7 @@ const vnode = createElement(MyComponent, { name: 'John' });
 Renders a virtual DOM node to the DOM.
 
 ```javascript
-import { render } from '@minimafjs/framework/core';
+import { render } from '@tolinsimpson/minimajs/core';
 
 render(vnode, document.getElementById('app'));
 ```
@@ -287,7 +289,7 @@ render(vnode, document.getElementById('app'));
 Groups elements without extra wrapper.
 
 ```javascript
-import { Fragment } from '@minimafjs/framework/core';
+import { Fragment } from '@tolinsimpson/minimajs/core';
 
 const list = createElement(Fragment, null, 
   createElement('li', null, 'Item 1'),
@@ -304,7 +306,7 @@ const list = createElement(Fragment, null,
 Manages component state.
 
 ```javascript
-import { useState } from '@minimafjs/framework/core';
+import { useState } from '@tolinsimpson/minimajs/core';
 
 const [count, setCount] = useState(0);
 setCount(count + 1);
@@ -315,7 +317,7 @@ setCount(prev => prev + 1); // functional update
 Handles side effects and lifecycle.
 
 ```javascript
-import { useEffect } from '@minimafjs/framework/core';
+import { useEffect } from '@tolinsimpson/minimajs/core';
 
 // On mount and every render
 useEffect(() => {
@@ -343,7 +345,7 @@ useEffect(() => {
 Accesses context values.
 
 ```javascript
-import { useContext } from '@minimafjs/framework/core';
+import { useContext } from '@tolinsimpson/minimajs/core';
 
 const theme = useContext(ThemeContext);
 ```
@@ -359,7 +361,7 @@ const theme = useContext(ThemeContext);
 Creates components using template literals.
 
 ```javascript
-import { html } from '@minimafjs/framework/template';
+import { html } from '@tolinsimpson/minimajs/template';
 
 const MyComponent = ({ name }) => html`
   <div class="greeting">
@@ -373,7 +375,7 @@ const MyComponent = ({ name }) => html`
 Conditional rendering helper.
 
 ```javascript
-import { when } from '@minimafjs/framework/template';
+import { when } from '@tolinsimpson/minimajs/template';
 
 const Profile = ({ user }) => html`
   <div>
@@ -387,7 +389,7 @@ const Profile = ({ user }) => html`
 Sanitizes user input for XSS protection.
 
 ```javascript
-import { sanitizeText } from '@minimafjs/framework/template';
+import { sanitizeText } from '@tolinsimpson/minimajs/template';
 
 const safe = sanitizeText(userInput);
 ```
@@ -403,7 +405,7 @@ const safe = sanitizeText(userInput);
 Creates advanced components with lifecycle.
 
 ```javascript
-import { defineComponent } from '@minimafjs/framework/component';
+import { defineComponent } from '@tolinsimpson/minimajs/component';
 
 const Button = defineComponent({
   name: 'Button',
@@ -436,7 +438,7 @@ const Button = defineComponent({
 Optimizes component re-renders.
 
 ```javascript
-import { memo } from '@minimafjs/framework/component';
+import { memo } from '@tolinsimpson/minimajs/component';
 
 const ExpensiveComponent = memo(({ data }) => {
   // Only re-renders if data changes
@@ -448,7 +450,7 @@ const ExpensiveComponent = memo(({ data }) => {
 Higher-order component for prop injection.
 
 ```javascript
-import { withProps } from '@minimafjs/framework/component';
+import { withProps } from '@tolinsimpson/minimajs/component';
 
 const RedButton = withProps(Button, { variant: 'danger' });
 ```
@@ -464,7 +466,7 @@ const RedButton = withProps(Button, { variant: 'danger' });
 Renders component to HTML string.
 
 ```javascript
-import { renderToString } from '@minimafjs/framework/ssr';
+import { renderToString } from '@tolinsimpson/minimajs/ssr';
 
 const html = renderToString(App, { user: userData });
 const response = `<!DOCTYPE html>
@@ -480,7 +482,7 @@ const response = `<!DOCTYPE html>
 Hydrates server-rendered HTML.
 
 ```javascript
-import { hydrate } from '@minimafjs/framework/ssr';
+import { hydrate } from '@tolinsimpson/minimajs/ssr';
 
 // Client-side hydration
 hydrate(App, document.getElementById('app'), { user: userData });
@@ -497,7 +499,7 @@ hydrate(App, document.getElementById('app'), { user: userData });
 Generates complete forms.
 
 ```javascript
-import { quickForm } from '@minimafjs/framework/llm';
+import { quickForm } from '@tolinsimpson/minimajs/llm';
 
 const form = quickForm({
   fields: [
@@ -514,7 +516,7 @@ const form = quickForm({
 Generates data tables.
 
 ```javascript
-import { quickTable } from '@minimafjs/framework/llm';
+import { quickTable } from '@tolinsimpson/minimajs/llm';
 
 const table = quickTable(users, [
   { key: 'name', header: 'Name', sortable: true },
@@ -533,7 +535,7 @@ const table = quickTable(users, [
 
 #### Fluent Chain Syntax
 ```javascript
-import { $div, $button, $h1 } from '@minimafjs/framework/llm';
+import { $div, $button, $h1 } from '@tolinsimpson/minimajs/llm';
 
 const card = $div()
   .class('card shadow-lg')
@@ -557,7 +559,7 @@ const card = $div()
 Boolean state helper.
 
 ```javascript
-import { toggle } from '@minimafjs/framework';
+import { toggle } from '@tolinsimpson/minimajs';
 
 const [isOpen, toggleOpen] = toggle(false);
 // toggleOpen() flips the boolean
@@ -568,7 +570,7 @@ const [isOpen, toggleOpen] = toggle(false);
 Counter state helper.
 
 ```javascript
-import { counter } from '@minimafjs/framework';
+import { counter } from '@tolinsimpson/minimajs';
 
 const [count, increment, decrement, setCount] = counter(0);
 ```
@@ -577,7 +579,7 @@ const [count, increment, decrement, setCount] = counter(0);
 Input state helper with onChange handler.
 
 ```javascript
-import { inputState } from '@minimafjs/framework';
+import { inputState } from '@tolinsimpson/minimajs';
 
 const [value, setValue, onChange] = inputState('');
 
@@ -592,7 +594,7 @@ html`<input value="${value}" oninput="${onChange}">`;
 MinimaJS includes built-in XSS protection:
 
 ```javascript
-import { html, sanitizeText } from '@minimafjs/framework';
+import { html, sanitizeText } from '@tolinsimpson/minimajs';
 
 // Safe by default - auto-sanitized
 const userContent = html`<div>${userInput}</div>`;
@@ -606,7 +608,7 @@ const clean = sanitizeText(dangerousString);
 ## TypeScript Support
 
 ```typescript
-import { useState, div, button } from '@minimafjs/framework';
+import { useState, div, button } from '@tolinsimpson/minimajs';
 
 interface User {
   id: number;
@@ -627,7 +629,7 @@ const UserCard = ({ user }: { user: User }) => {
 
 ```javascript
 // examples/minima.test.js
-import { createElement, useState, render } from '@minimafjs/framework';
+import { createElement, useState, render } from '@tolinsimpson/minimajs';
 
 const TestComponent = () => {
   const [count, setCount] = useState(0);
@@ -711,7 +713,7 @@ MinimaJS is **production-ready** for modern web applications with these consider
 
 **MinimaJS**
 ```javascript
-import { div, h1, button, useState, app } from '@minimafjs/framework';
+import { div, h1, button, useState, app } from '@tolinsimpson/minimajs';
 
 const Counter = () => {
   const [count, setCount] = useState(0);
@@ -766,7 +768,7 @@ const count = ref(0)
 
 **MinimaJS**
 ```javascript
-import { html, useState } from '@minimafjs/framework';
+import { html, useState } from '@tolinsimpson/minimajs';
 
 const TodoApp = () => {
   const [todos, setTodos] = useState([]);
@@ -822,7 +824,7 @@ const TodoApp = () => {
 
 **MinimaJS**
 ```javascript
-import { useState, useEffect, toggle, counter } from '@minimafjs/framework';
+import { useState, useEffect, toggle, counter } from '@tolinsimpson/minimajs';
 
 const UserProfile = ({ userId }) => {
   const [user, setUser] = useState(null);
@@ -890,9 +892,9 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 - [Documentation](https://minimajs.dev)
 - [Examples](./examples/)
-- [NPM Package](https://www.npmjs.com/package/@minimafjs/framework)
-- [GitHub](https://github.com/minimajs/framework)
-- [Issues](https://github.com/minimajs/framework/issues)
+- [GitHub Package](https://github.com/tolinsimpson/minima-js/packages)
+- [GitHub](https://github.com/tolinsimpson/minima-js)
+- [Issues](https://github.com/tolinsimpson/minima-js/issues)
 
 ## Why Choose MinimaJS?
 
