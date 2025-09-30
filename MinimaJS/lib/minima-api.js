@@ -2,7 +2,10 @@
  * MinimaJS Enhanced API v1.0.0 - Ultra-concise shortcuts
  */
 
-import { createElement, useState, useEffect, render as coreRender } from './minima-core.js';
+import {
+  createElement, useState, useEffect, useMemo, useCallback,
+  useTransition, useDeferredValue, useResource, Suspense, render as coreRender
+} from './minima-core.js';
 import { html } from './minima-template.js';
 import { defineComponent } from './minima-component.js';
 
@@ -25,11 +28,22 @@ const h3 = (...args) => h('h3', ...args);
 // Component creation shortcuts
 const component = defineComponent;
 const fc = (render) => () => render();
+
+// Shallow equality check - much faster than JSON.stringify
+const shallowEqual = (a, b) => {
+  if (a === b) return true;
+  if (!a || !b || typeof a !== 'object' || typeof b !== 'object') return false;
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) return false;
+  return keysA.every(key => a[key] === b[key]);
+};
+
 const memo = (Component) => {
   let lastProps = null;
   let lastResult = null;
   return (props) => {
-    if (JSON.stringify(props) !== JSON.stringify(lastProps)) {
+    if (!lastProps || !shallowEqual(props, lastProps)) {
       lastResult = h(Component, props);
       lastProps = props;
     }
@@ -40,10 +54,9 @@ const memo = (Component) => {
 // Template shortcuts
 const t = html;
 const css = (strings, ...values) => {
-  let result = '';
-  for (let i = 0; i < strings.length; i++) {
-    result += strings[i];
-    if (i < values.length) result += values[i];
+  let result = strings[0];
+  for (let i = 1; i < strings.length; i++) {
+    result += values[i - 1] + strings[i];
   }
   return result;
 };
@@ -147,7 +160,7 @@ const link = (to, children, props = {}) =>
 const context = (initialValue) => {
   let value = initialValue;
   const listeners = new Set();
-  
+
   const Provider = ({ value: newValue, children }) => {
     if (newValue !== value) {
       value = newValue;
@@ -155,7 +168,7 @@ const context = (initialValue) => {
     }
     return children;
   };
-  
+
   const use = () => {
     const [currentState, setState] = useState(value);
     useEffect(() => {
@@ -165,8 +178,54 @@ const context = (initialValue) => {
     }, []);
     return currentState;
   };
-  
-  return [Provider, use];
+
+  // Enhanced context with multiple consumers support
+  const Consumer = ({ children }) => {
+    const contextValue = use();
+    if (typeof children === 'function') {
+      return children(contextValue);
+    }
+    return children;
+  };
+
+  return { Provider, Consumer, use };
+};
+
+// Create context with default export pattern
+const createContext = (defaultValue) => {
+  return context(defaultValue);
+};
+
+// Error boundary component
+const ErrorBoundary = (fallback = null) => {
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const handleError = (event) => {
+      setError(event.error || event.reason);
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleError);
+
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleError);
+    };
+  }, []);
+
+  if (error) {
+    if (typeof fallback === 'function') {
+      return fallback(error);
+    }
+    return div({ className: 'error-boundary' }, [
+      h2('Something went wrong'),
+      p(error.message || 'An unexpected error occurred'),
+      button({ onClick: () => setError(null) }, 'Try again')
+    ]);
+  }
+
+  return null;
 };
 
 // Development helpers
@@ -183,33 +242,38 @@ const log = (value, label = 'Debug') => {
 // Bundle everything for easy importing
 const api = {
   // Core (standard names)
-  createElement, useState, useEffect, render: coreRender, html, defineComponent,
-  
+  createElement, useState, useEffect, useMemo, useCallback, useTransition, useDeferredValue, useResource, Suspense,
+  render: coreRender, html, defineComponent,
+
   // Shortcuts (ultra-concise)
   h, div, span, p, button, input, a, img, form, ul, li, h1, h2, h3,
-  useState, useEffect, component, fc, memo, t, css, render, mount, app,
-  
+  useState, useEffect, useMemo, useCallback, useTransition, useDeferredValue, useResource, Suspense,
+  component, fc, memo, t, css, render, mount, app,
+
   // Events & Props
   click, submit, change, input, style, className, id, props, attr,
-  
+
   // Control flow
   when, unless, each,
-  
+
   // Lifecycle
   onMount, onUpdate, onDestroy,
-  
+
   // State helpers
   toggle, counter, inputState, formState,
-  
+
   // Animations
   fade, slide,
-  
+
   // Routing
   route, link,
-  
+
   // Context
-  context,
-  
+  context, createContext,
+
+  // Error handling
+  ErrorBoundary,
+
   // Debug
   debug, log
 };
@@ -217,17 +281,17 @@ const api = {
 // Export individual functions
 export {
   // Core
-  createElement, useState, useEffect, render, html, defineComponent,
-  
+  createElement, useState, useEffect, useMemo, useCallback, useTransition, useDeferredValue, useResource, Suspense,
+  render, html, defineComponent,
+
   // Shortcuts
   h, div, span, p, button, input, a, img, form, ul, li, h1, h2, h3,
-  useState, useEffect, component, fc, memo, t, css, mount, app,
-  
+  component, fc, memo, t, css, mount, app,
+
   // Utilities
   click, submit, change, inputEvent, style, className, id, when, unless, each,
   props, attr, onMount, onUpdate, onDestroy, toggle, counter, inputState, formState,
-  fade, slide, route, link, context, debug, log
+  fade, slide, route, link, context, createContext, ErrorBoundary, debug, log
 };
-
 // Export bundle
 export default api;

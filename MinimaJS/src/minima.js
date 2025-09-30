@@ -3,11 +3,17 @@
  */
 
 // Core Virtual DOM & Hooks
-export { 
-  createElement, 
-  useState, 
-  useEffect, 
-  render 
+export {
+  createElement,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useTransition,
+  useDeferredValue,
+  useResource,
+  Suspense,
+  render
 } from '../lib/minima-core.js';
 
 // XSS-Safe HTML Templates  
@@ -38,7 +44,7 @@ export {
 // LLM-Optimized Layer
 export {
   quickForm, quickList, quickModal, quickCard, quickTable,
-  $, $div, $span, $p, $button, $input, $form, $h1, $h2, $h3,
+  $div, $span, $p, $button, $input, $form, $h1, $h2, $h3,
   createApp as llmCreateApp,
   safeRender, safeComponent, tryRender,
   page, builder
@@ -47,14 +53,14 @@ export {
 // API
 export {
   h, div, span, p, button, input, a, img, form, ul, li, h1, h2, h3,
-  useState, useEffect, component, fc, memo as memoize, t, css, mount, app,
+  component, fc, memo as memoize, t, css, mount, app,
   click, submit, change, style, className, id, props, attr,
   when, unless, each,
   onMount, onUpdate, onDestroy,
-  toggle, counter, inputState, formState, 
+  toggle, counter, inputState, formState,
   fade, slide,
   route, link,
-  context,
+  context, createContext, ErrorBoundary,
   debug, log
 } from '../lib/minima-api.js';
 

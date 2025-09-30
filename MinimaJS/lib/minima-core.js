@@ -7,12 +7,60 @@ let currentComponent = null;
 let hookIndex = 0;
 let components = new WeakMap();
 
+const depsEqual = (a, b) => {
+  if (!a || !b) return a === b;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+};
+
+// Concurrent rendering state
+let renderQueue = new Set();
+let isRendering = false;
+const PRIORITIES = { IMMEDIATE: 0, NORMAL: 1, IDLE: 2 };
+
+// Transition tracking
+let currentTransition = null;
+let pendingTransitions = new Set();
+
+// Suspense state management
+let suspenseCache = new Map();
+let currentSuspenseHandler = null;
+
 // Virtual Node creation
-const createElement = (type, props = {}, ...children) => ({
-  type,
-  props: { ...props, children: children.flat() },
-  key: props?.key || null
-});
+const createElement = (type, props = {}, ...children) => {
+  const flatChildren = children.flat();
+
+  // Create props object only if needed
+  const vnodeProps = props && Object.keys(props).length > 0
+    ? { ...props, children: flatChildren }
+    : { children: flatChildren };
+
+  const vnode = {
+    type,
+    props: vnodeProps,
+    key: props?.key || null
+  };
+
+  // Validate keys in children for duplicates (only when > 1 child)
+  if (flatChildren.length > 1) {
+    const keys = new Set();
+    for (let i = 0; i < flatChildren.length; i++) {
+      const child = flatChildren[i];
+      if (child?.key) {
+        if (keys.has(child.key)) {
+          console.warn('createElement: Duplicate keys detected in children. This may cause rendering issues.');
+          break;
+        }
+        keys.add(child.key);
+      }
+    }
+  }
+
+  return vnode;
+};
 
 // Component state hook
 const useState = (initial) => {
@@ -39,61 +87,212 @@ const useState = (initial) => {
 // Effect hook with dependency tracking
 const useEffect = (effect, deps) => {
   if (!currentComponent) throw new Error('useEffect: outside component');
-  
+
   const comp = components.get(currentComponent);
   const idx = hookIndex++;
-  
+
   if (!comp.hooks) comp.hooks = [];
   if (!comp.hooks[idx]) comp.hooks[idx] = {};
-  
+
   const hook = comp.hooks[idx];
-  const depsChanged = !hook.deps || !deps || 
-    deps.length !== hook.deps.length ||
-    deps.some((dep, i) => dep !== hook.deps[i]);
-  
+  const depsChanged = !depsEqual(hook.deps, deps);
+
   if (depsChanged) {
     if (hook.cleanup) hook.cleanup();
     hook.cleanup = effect();
-    hook.deps = deps ? [...deps] : null;
+    hook.deps = deps;
+  }
+
+  // Cleanup on unmount
+  if (!comp.cleanup) {
+    comp.cleanup = () => {
+      comp.hooks?.forEach(h => h.cleanup?.());
+    };
   }
 };
 
-// Component rendering queue
-const renderQueue = new Set();
-let isRendering = false;
+// Memo hook for expensive computations
+const useMemo = (factory, deps) => {
+  if (!currentComponent) throw new Error('useMemo: outside component');
 
+  const comp = components.get(currentComponent);
+  const idx = hookIndex++;
+
+  if (!comp.hooks) comp.hooks = [];
+  if (!comp.hooks[idx]) comp.hooks[idx] = {};
+
+  const hook = comp.hooks[idx];
+  if (!depsEqual(hook.deps, deps)) {
+    hook.value = factory();
+    hook.deps = deps;
+  }
+
+  return hook.value;
+};
+
+// Callback hook for stable function references
+const useCallback = (callback, deps) => {
+  if (!currentComponent) throw new Error('useCallback: outside component');
+
+  const comp = components.get(currentComponent);
+  const idx = hookIndex++;
+
+  if (!comp.hooks) comp.hooks = [];
+  if (!comp.hooks[idx]) comp.hooks[idx] = {};
+
+  const hook = comp.hooks[idx];
+  if (!depsEqual(hook.deps, deps)) {
+    hook.callback = callback;
+    hook.deps = deps; // Store reference directly
+  }
+
+  return hook.callback;
+};
+
+// Transition hook for concurrent updates
+const useTransition = () => {
+  if (!currentComponent) throw new Error('useTransition: outside component');
+
+  const comp = components.get(currentComponent);
+  const idx = hookIndex++;
+
+  if (!comp.hooks) comp.hooks = [];
+  if (!comp.hooks[idx]) comp.hooks[idx] = { isPending: false };
+
+  const hook = comp.hooks[idx];
+
+  const startTransition = (callback) => {
+    const transition = {
+      id: Math.random().toString(36).substr(2, 9),
+      priority: PRIORITIES.NORMAL,
+      callback,
+      startTime: performance.now()
+    };
+
+    currentTransition = transition;
+    pendingTransitions.add(transition);
+
+    hook.isPending = true;
+
+    try {
+      callback();
+    } finally {
+      pendingTransitions.delete(transition);
+      if (pendingTransitions.size === 0) {
+        currentTransition = null;
+      }
+      hook.isPending = false;
+    }
+  };
+
+  return [hook.isPending, startTransition];
+};
+
+// Deferred value hook for concurrent updates
+const useDeferredValue = (value) => {
+  if (!currentComponent) throw new Error('useDeferredValue: outside component');
+
+  const comp = components.get(currentComponent);
+  const idx = hookIndex++;
+
+  if (!comp.hooks) comp.hooks = [];
+  if (!comp.hooks[idx]) comp.hooks[idx] = {};
+
+  const hook = comp.hooks[idx];
+
+  // Simple implementation - just return value (could be enhanced later)
+  if (hook.deferredValue !== value) {
+    hook.deferredValue = value;
+    scheduleRender(currentComponent);
+  }
+
+  return hook.deferredValue;
+};
+
+// Resource hook for async data fetching
+const useResource = (resourceFactory) => {
+  if (!currentComponent) throw new Error('useResource: outside component');
+
+  const comp = components.get(currentComponent);
+  const idx = hookIndex++;
+
+  if (!comp.hooks) comp.hooks = [];
+  if (!comp.hooks[idx]) comp.hooks[idx] = {};
+
+  const hook = comp.hooks[idx];
+
+  // Simple implementation - just call factory (Suspense handles the promise)
+  if (!hook.result) {
+    hook.result = resourceFactory();
+  }
+
+  return hook.result;
+};
+
+// Suspense component (simplified)
+const Suspense = ({ children, fallback }) => {
+  const prevSuspenseHandler = currentSuspenseHandler;
+  currentSuspenseHandler = () => fallback;
+
+  try {
+    return children;
+  } catch (promise) {
+    if (promise && typeof promise.then === 'function') {
+      return fallback; // Render fallback while promise is pending
+    }
+    throw promise;
+  } finally {
+    currentSuspenseHandler = prevSuspenseHandler;
+  }
+};
+
+// Simplified rendering queue (no complex priorities for smaller bundle)
 const scheduleRender = (component) => {
   renderQueue.add(component);
   if (!isRendering) {
     isRendering = true;
-    Promise.resolve().then(() => {
-      renderQueue.forEach(comp => renderComponent(comp));
-      renderQueue.clear();
-      isRendering = false;
-    });
+    // Use requestIdleCallback if available, fallback to setTimeout
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(() => {
+        renderQueue.forEach(comp => renderComponent(comp));
+        renderQueue.clear();
+        isRendering = false;
+      }, { timeout: 100 });
+    } else {
+      setTimeout(() => {
+        renderQueue.forEach(comp => renderComponent(comp));
+        renderQueue.clear();
+        isRendering = false;
+      }, 0);
+    }
   }
 };
 
-// Virtual DOM diffing algorithm
+// Virtual DOM diffing algorithm with key-based reconciliation
 const diff = (oldVNode, newVNode, container, index = 0) => {
   // Remove old node
   if (!newVNode && oldVNode) {
     container.removeChild(container.childNodes[index]);
+    // Cleanup component if it was a function component
+    if (oldVNode.type && typeof oldVNode.type === 'function') {
+      const comp = components.get(oldVNode.type);
+      if (comp?.cleanup) comp.cleanup();
+    }
     return;
   }
-  
+
   // Add new node
   if (newVNode && !oldVNode) {
     container.appendChild(createDOMElement(newVNode));
     return;
   }
-  
+
   // Replace different types
   if (oldVNode.type !== newVNode.type) {
     container.replaceChild(createDOMElement(newVNode), container.childNodes[index]);
     return;
   }
-  
+
   // Text nodes
   if (typeof newVNode === 'string' || typeof newVNode === 'number') {
     if (oldVNode !== newVNode) {
@@ -101,19 +300,89 @@ const diff = (oldVNode, newVNode, container, index = 0) => {
     }
     return;
   }
-  
+
   // Update props
   const node = container.childNodes[index];
   updateProps(node, oldVNode.props, newVNode.props);
-  
-  // Diff children
+
+  // Diff children with key-based reconciliation
   const oldChildren = oldVNode.props.children || [];
   const newChildren = newVNode.props.children || [];
-  const maxChildren = Math.max(oldChildren.length, newChildren.length);
-  
-  for (let i = 0; i < maxChildren; i++) {
-    diff(oldChildren[i], newChildren[i], node, i);
+
+  // Group children by key for efficient reconciliation
+  const oldKeyed = new Map();
+  const oldKeyless = [];
+  oldChildren.forEach((child, i) => {
+    const key = child?.key;
+    if (key) oldKeyed.set(key, { child, index: i });
+    else oldKeyless.push({ child, index: i });
+  });
+
+  const newKeyed = new Map();
+  const newKeyless = [];
+  newChildren.forEach((child, i) => {
+    const key = child?.key;
+    if (key) newKeyed.set(key, { child, index: i });
+    else newKeyless.push({ child, index: i });
+  });
+
+  // Process keyed children first
+  const allKeys = new Set([...oldKeyed.keys(), ...newKeyed.keys()]);
+  allKeys.forEach(key => {
+    const old = oldKeyed.get(key);
+    const nw = newKeyed.get(key);
+
+    if (!nw) {
+      // Key removed - find and remove from DOM
+      if (old) {
+        const domIndex = findDOMIndex(node, old.index);
+        if (domIndex >= 0) {
+          node.removeChild(node.childNodes[domIndex]);
+        }
+      }
+    } else if (!old) {
+      // Key added - insert at correct position
+      const beforeKey = findBeforeKey(newKeyed, key);
+      const beforeIndex = beforeKey ? findDOMIndex(node, newKeyed.get(beforeKey).index) : -1;
+      const domElement = createDOMElement(nw.child);
+      if (beforeIndex >= 0) {
+        node.insertBefore(domElement, node.childNodes[beforeIndex]);
+      } else {
+        node.appendChild(domElement);
+      }
+    } else {
+      // Key exists - diff in place
+      diff(old.child, nw.child, node, old.index);
+    }
+  });
+
+  // Process keyless children (simple positional diff)
+  const maxKeyless = Math.max(oldKeyless.length, newKeyless.length);
+  for (let i = 0; i < maxKeyless; i++) {
+    const oldChild = oldKeyless[i]?.child;
+    const newChild = newKeyless[i]?.child;
+    diff(oldChild, newChild, node, oldKeyless[i]?.index ?? i);
   }
+};
+
+// Helper function to find DOM index from VNode index
+const findDOMIndex = (parent, vnodeIndex) => {
+  const children = Array.from(parent.childNodes);
+  let domIndex = 0;
+  for (let i = 0; i < vnodeIndex && domIndex < children.length; i++) {
+    domIndex++;
+  }
+  return domIndex < children.length ? domIndex : -1;
+};
+
+// Helper function to find the key that should come before this one
+const findBeforeKey = (keyedMap, targetKey) => {
+  const keys = Array.from(keyedMap.keys());
+  const targetIndex = keys.indexOf(targetKey);
+  for (let i = targetIndex - 1; i >= 0; i--) {
+    if (keyedMap.has(keys[i])) return keys[i];
+  }
+  return null;
 };
 
 // Create DOM element from VNode
@@ -182,45 +451,55 @@ const renderComponent = (comp) => {
   hookIndex = 0;
   
   const newVNode = comp(compData.props);
-  diff(compData.oldVNode, newVNode, compData.element.parentNode, 
-    Array.from(compData.element.parentNode.childNodes).indexOf(compData.element));
+  const parentNode = compData.element.parentNode;
+  const siblings = parentNode.childNodes;
+  let elementIndex = 0;
+  for (; elementIndex < siblings.length && siblings[elementIndex] !== compData.element; elementIndex++);
+  diff(compData.oldVNode, newVNode, parentNode, elementIndex);
   
   compData.oldVNode = newVNode;
   currentComponent = prevComponent;
   hookIndex = prevHookIndex;
 };
 
-// Update element properties
 const updateProps = (element, oldProps = {}, newProps = {}) => {
-  // Remove old props
-  Object.keys(oldProps).forEach(key => {
-    if (key === 'children') return;
-    if (!(key in newProps)) {
-      if (key.startsWith('on')) {
-        element.removeEventListener(key.substring(2).toLowerCase(), oldProps[key]);
-      } else if (key in element) {
-        element[key] = '';
-      } else {
-        element.removeAttribute(key);
-      }
+  const oldKeys = Object.keys(oldProps);
+  const newKeys = Object.keys(newProps);
+
+  // Remove old props (only if not in new props)
+  for (let i = 0; i < oldKeys.length; i++) {
+    const key = oldKeys[i];
+    if (key === 'children' || key in newProps) continue;
+
+    if (key.startsWith('on')) {
+      element.removeEventListener(key.substring(2).toLowerCase(), oldProps[key]);
+    } else if (key in element) {
+      element[key] = '';
+    } else {
+      element.removeAttribute(key);
     }
-  });
-  
-  // Set new props
-  Object.keys(newProps).forEach(key => {
-    if (key === 'children') return;
-    if (oldProps[key] !== newProps[key]) {
+  }
+
+  // Set new props (only if different from old)
+  for (let i = 0; i < newKeys.length; i++) {
+    const key = newKeys[i];
+    if (key === 'children') continue;
+
+    const oldValue = oldProps[key];
+    const newValue = newProps[key];
+
+    if (oldValue !== newValue) {
       if (key.startsWith('on')) {
         const event = key.substring(2).toLowerCase();
-        if (oldProps[key]) element.removeEventListener(event, oldProps[key]);
-        element.addEventListener(event, newProps[key]);
+        if (oldValue) element.removeEventListener(event, oldValue);
+        element.addEventListener(event, newValue);
       } else if (key in element) {
-        element[key] = newProps[key];
+        element[key] = newValue;
       } else {
-        element.setAttribute(key, newProps[key]);
+        element.setAttribute(key, newValue);
       }
     }
-  });
+  }
 };
 
 // Main render function
@@ -234,4 +513,7 @@ const render = (vnode, container) => {
 };
 
 // Export public API
-export { createElement, useState, useEffect, render };
+export {
+  createElement, useState, useEffect, useMemo, useCallback,
+  useTransition, useDeferredValue, useResource, Suspense, render
+};

@@ -4,12 +4,9 @@
 
 import { createElement, useState, useEffect } from './minima-core.js';
 
-// Component lifecycle state tracking
-const componentLifecycles = new WeakMap();
-
 // Define a component with enhanced features
 const defineComponent = (options) => {
-  const { 
+  const {
     name = 'AnonymousComponent',
     props: propTypes = {},
     setup,
@@ -34,35 +31,34 @@ const defineComponent = (options) => {
 
     // Component instance state
     const [mounted, setMounted] = useState(false);
-    const [updateTrigger, setUpdateTrigger] = useState(0);
-    
+    const [updateCount, setUpdateCount] = useState(0);
+
     // Setup function - runs once per component instance
     const setupContext = setup ? setup(props) : {};
-    
+
     // Computed properties with caching
     const computedCache = new Map();
     const computedProps = {};
-    
-    Object.keys(computed).forEach(key => {
+
+    for (const key in computed) {
       Object.defineProperty(computedProps, key, {
         get() {
           if (!computedCache.has(key)) {
-            computedCache.set(key, computed[key].call(this, setupContext));
+            computedCache.set(key, computed[key].call(setupContext));
           }
           return computedCache.get(key);
         },
         enumerable: true
       });
-    });
-    
+    }
+
     // Invalidate computed cache on updates
     const invalidateComputed = () => {
       computedCache.clear();
-      setUpdateTrigger(prev => prev + 1);
+      setUpdateCount(prev => prev + 1);
     };
 
-    // Watch implementation
-    Object.keys(watch).forEach(key => {
+    for (const key in watch) {
       let oldValue = setupContext[key];
       useEffect(() => {
         const newValue = setupContext[key];
@@ -70,14 +66,15 @@ const defineComponent = (options) => {
           watch[key].call(setupContext, newValue, oldValue);
           oldValue = newValue;
         }
-      });
-    });
+      }, [setupContext[key]]);
+    }
 
     // Lifecycle: beforeMount
     useEffect(() => {
       if (beforeMount) beforeMount.call(setupContext);
       return () => {
         if (beforeUnmount) beforeUnmount.call(setupContext);
+        if (unmounted) unmounted.call(setupContext);
       };
     }, []);
 
@@ -85,24 +82,20 @@ const defineComponent = (options) => {
     useEffect(() => {
       if (!mounted) {
         setMounted(true);
-        if (mounted && componentLifecycles.get(Component) !== 'mounted') {
-          componentLifecycles.set(Component, 'mounted');
-          if (mounted) mounted.call(setupContext);
-        }
+        if (mounted) mounted.call(setupContext);
       }
     }, [mounted]);
 
     // Lifecycle: beforeUpdate/updated
     useEffect(() => {
-      if (mounted && componentLifecycles.get(Component) === 'mounted') {
+      if (mounted && updateCount > 0) {
         if (beforeUpdate) beforeUpdate.call(setupContext);
-        
         // Schedule updated callback after render
-        Promise.resolve().then(() => {
+        setTimeout(() => {
           if (updated) updated.call(setupContext);
-        });
+        }, 0);
       }
-    }, [updateTrigger]);
+    }, [updateCount]);
 
     // Enhanced render context
     const renderContext = {
@@ -116,7 +109,7 @@ const defineComponent = (options) => {
         }
       },
       $update: invalidateComputed,
-      $forceUpdate: () => setUpdateTrigger(prev => prev + 1)
+      $forceUpdate: () => setUpdateCount(prev => prev + 1)
     };
 
     // Render component
@@ -150,18 +143,18 @@ const Fragment = ({ children }) => children;
 const memo = (Component, areEqual) => {
   let lastProps = {};
   let lastResult = null;
-  
+
   return function MemoizedComponent(props) {
-    const shouldUpdate = areEqual ? 
-      !areEqual(lastProps, props) : 
+    const shouldUpdate = areEqual ?
+      !areEqual(lastProps, props) :
       Object.keys(props).some(key => props[key] !== lastProps[key]) ||
       Object.keys(lastProps).some(key => !(key in props));
-    
+
     if (shouldUpdate || !lastResult) {
       lastResult = createElement(Component, props);
-      lastProps = { ...props };
+      lastProps = props; // Use reference instead of spread for better performance
     }
-    
+
     return lastResult;
   };
 };

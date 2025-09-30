@@ -4,38 +4,72 @@
 
 import { createElement } from './minima-core.js';
 
-// XSS Prevention - Sanitization rules
-const DANGEROUS_TAGS = new Set(['script', 'iframe', 'object', 'embed', 'applet', 'meta', 'link', 'style']);
-const DANGEROUS_ATTRS = new Set(['onload', 'onerror', 'onclick', 'onmouseover', 'onfocus', 'onblur']);
-const URL_ATTRS = new Set(['href', 'src', 'action', 'formaction', 'data', 'background']);
+// XSS Prevention - Comprehensive sanitization rules
+const DANGEROUS_TAGS = new Set([
+  'script', 'iframe', 'object', 'embed', 'applet', 'meta', 'link', 'style',
+  'form', 'input', 'button', 'select', 'textarea', 'option', 'optgroup'
+]);
+
+const DANGEROUS_ATTRS = new Set([
+  'onload', 'onerror', 'onclick', 'onmouseover', 'onfocus', 'onblur', 'onchange',
+  'onsubmit', 'onkeydown', 'onkeyup', 'onkeypress', 'onmousedown', 'onmouseup',
+  'onmousemove', 'onmouseout', 'onmouseenter', 'onmouseleave', 'onscroll',
+  'onresize', 'onhashchange', 'onpopstate', 'onbeforeunload', 'onunload',
+  'onmessage', 'onstorage', 'ononline', 'onoffline', 'onabort', 'oncanplay',
+  'oncanplaythrough', 'ondurationchange', 'onemptied', 'onended', 'oninput',
+  'oninvalid', 'onpause', 'onplay', 'onplaying', 'onprogress', 'onratechange',
+  'onseeked', 'onseeking', 'onstalled', 'onsuspend', 'ontimeupdate', 'onvolumechange',
+  'onwaiting', 'onafterprint', 'onbeforeprint', 'onabort', 'oncanplay',
+  'oncanplaythrough', 'oncontextmenu', 'oncuechange', 'ondblclick', 'ondrag',
+  'ondragend', 'ondragenter', 'ondragleave', 'ondragover', 'ondragstart', 'ondrop',
+  'ondurationchange', 'onemptied', 'onended', 'onformchange', 'onforminput',
+  'oninput', 'oninvalid', 'onpause', 'onplay', 'onplaying', 'onprogress',
+  'onratechange', 'onreset', 'onseeked', 'onseeking', 'onselect', 'onshow',
+  'onstalled', 'onsubmit', 'onsuspend', 'ontimeupdate', 'ontoggle', 'onvolumechange',
+  'onwaiting', 'onwheel', 'oncopy', 'oncut', 'onpaste', 'onauxclick', 'onpointerdown',
+  'onpointerup', 'onpointermove', 'onpointerover', 'onpointerout', 'onpointerenter',
+  'onpointerleave', 'onpointercancel', 'ongotpointercapture', 'onlostpointercapture'
+]);
+
+const URL_ATTRS = new Set([
+  'href', 'src', 'action', 'formaction', 'data', 'background', 'poster',
+  'icon', 'manifest', 'content', 'cite', 'longdesc', 'usemap', 'formtarget'
+]);
 
 // Sanitize text content
 const sanitizeText = (text) => {
   if (typeof text !== 'string') return String(text);
-  return text
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
-    .replace(/\//g, '&#x2F;');
+  return text.replace(/[<>"'\/]/g, (match) => {
+    switch (match) {
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      case '"': return '&quot;';
+      case "'": return '&#x27;';
+      case '/': return '&#x2F;';
+      default: return match;
+    }
+  });
 };
 
 // Validate URLs for XSS protection
 const isValidUrl = (url) => {
   if (typeof url !== 'string') return false;
   const trimmed = url.trim().toLowerCase();
-  return !trimmed.startsWith('javascript:') && 
-         !trimmed.startsWith('data:') &&
-         !trimmed.startsWith('vbscript:') &&
-         !trimmed.includes('javascript:');
+  return !(trimmed.startsWith('javascript:') ||
+           trimmed.startsWith('data:') ||
+           trimmed.startsWith('vbscript:') ||
+           trimmed.includes('javascript:'));
 };
 
 // Sanitize attribute value
 const sanitizeAttr = (name, value) => {
-  if (DANGEROUS_ATTRS.has(name.toLowerCase())) return null;
-  if (URL_ATTRS.has(name.toLowerCase()) && !isValidUrl(value)) return null;
+  const nameLower = name.toLowerCase();
+  if (DANGEROUS_ATTRS.has(nameLower)) return null;
+  if (URL_ATTRS.has(nameLower) && !isValidUrl(value)) return null;
   if (typeof value === 'string') {
-    return value.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+    return value.replace(/["']/g, (match) =>
+      match === '"' ? '&quot;' : '&#x27;'
+    );
   }
   return value;
 };
@@ -125,71 +159,74 @@ const tokensToVNode = (tokens) => {
 
 // Template literal processor
 const html = (strings, ...values) => {
+  // Build result string efficiently
   let result = '';
-  
   for (let i = 0; i < strings.length; i++) {
     result += strings[i];
     if (i < values.length) {
       const value = values[i];
       if (typeof value === 'function') {
-        // Event handlers - keep as-is for later binding
         result += `__HANDLER_${i}__`;
       } else if (Array.isArray(value)) {
-        // Array of VNodes
-        result += value.map(v => typeof v === 'string' ? sanitizeText(v) : '__VNODE__').join('');
+        // Process array values more efficiently
+        for (let j = 0; j < value.length; j++) {
+          const item = value[j];
+          result += typeof item === 'string' ? sanitizeText(item) : '__VNODE__';
+        }
       } else {
-        // Regular interpolation - sanitize
         result += sanitizeText(value);
       }
     }
   }
-  
+
   // Parse HTML and convert to VNodes
   const tokens = parseHTML(result);
   const vnodes = tokensToVNode(tokens);
-  
+
   // Process handlers and VNodes
-  let handlerIndex = 0;
   const processVNode = (vnode) => {
     if (typeof vnode === 'string') {
-      // Replace handler placeholders
       return vnode.replace(/__HANDLER_(\d+)__/g, (match, idx) => {
         const handler = values[parseInt(idx)];
-        if (typeof handler === 'function') {
-          // Store handler for later binding
-          handlerIndex++;
-          return `data-handler-${handlerIndex}`;
-        }
-        return match;
+        return typeof handler === 'function' ? handler : match;
       });
     }
-    
-    if (vnode.type && vnode.props) {
+
+    if (vnode?.type && vnode.props) {
       // Process attributes for handlers
-      Object.keys(vnode.props).forEach(key => {
-        if (typeof vnode.props[key] === 'string' && vnode.props[key].includes('__HANDLER_')) {
-          const handlerIdx = parseInt(vnode.props[key].match(/__HANDLER_(\d+)__/)?.[1]);
-          if (handlerIdx !== undefined && values[handlerIdx]) {
-            // Convert to proper event handler
-            const eventName = key.startsWith('on') ? key : `on${key}`;
-            delete vnode.props[key];
-            vnode.props[eventName] = values[handlerIdx];
+      const props = vnode.props;
+      for (const key in props) {
+        const value = props[key];
+        if (typeof value === 'string' && value.includes('__HANDLER_')) {
+          const handlerMatch = value.match(/__HANDLER_(\d+)__/);
+          if (handlerMatch) {
+            const handlerIdx = parseInt(handlerMatch[1]);
+            const handler = values[handlerIdx];
+            if (typeof handler === 'function') {
+              const eventName = key.startsWith('on') ? key : `on${key}`;
+              delete props[key];
+              props[eventName] = handler;
+            }
           }
         }
-      });
-      
+      }
+
       // Process children recursively
-      if (vnode.children) {
-        vnode.children = vnode.children.map(processVNode).filter(Boolean);
+      if (vnode.children?.length) {
+        const processedChildren = new Array(vnode.children.length);
+        for (let i = 0; i < vnode.children.length; i++) {
+          processedChildren[i] = processVNode(vnode.children[i]);
+        }
+        vnode.children = processedChildren;
         vnode.props.children = vnode.children;
       }
-      
+
       return createElement(vnode.type, vnode.props, ...vnode.children);
     }
-    
+
     return vnode;
   };
-  
+
   // Single root element or fragment
   if (vnodes.length === 1) {
     return processVNode(vnodes[0]);

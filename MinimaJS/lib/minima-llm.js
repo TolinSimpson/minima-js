@@ -221,32 +221,18 @@ const createApp = {
   todo: (config = {}) => {
     const [todos, setTodos] = useState(config.initialTodos || []);
     const [input, setInput] = useState('');
-    
+
     const addTodo = () => {
       if (input.trim()) {
-        setTodos([...todos, { 
-          id: Date.now(), 
-          text: input, 
-          done: false 
-        }]);
+        setTodos([...todos, { id: Date.now(), text: input, done: false }]);
         setInput('');
       }
     };
-    
-    const toggleTodo = (id) => {
-      setTodos(todos.map(todo => 
-        todo.id === id ? { ...todo, done: !todo.done } : todo
-      ));
-    };
-    
-    const removeTodo = (id) => {
-      setTodos(todos.filter(todo => todo.id !== id));
-    };
-    
+
     return div({ className: 'todo-app' }, [
       h1('Todo App'),
       div({ className: 'todo-input' }, [
-        input({ 
+        input({
           value: input,
           onChange: e => setInput(e.target.value),
           placeholder: 'Add new todo...',
@@ -254,18 +240,20 @@ const createApp = {
         }),
         button({ onClick: addTodo }, 'Add')
       ]),
-      quickList(todos, todo => 
-        div({ 
+      quickList(todos, todo =>
+        div({
           className: todo.done ? 'todo-item done' : 'todo-item',
-          key: todo.id 
+          key: todo.id
         }, [
-          input({ 
+          input({
             type: 'checkbox',
             checked: todo.done,
-            onChange: () => toggleTodo(todo.id)
+            onChange: () => setTodos(todos.map(t =>
+              t.id === todo.id ? { ...t, done: !t.done } : t
+            ))
           }),
           span(todo.text),
-          button({ onClick: () => removeTodo(todo.id) }, '×')
+          button({ onClick: () => setTodos(todos.filter(t => t.id !== todo.id)) }, '×')
         ])
       )
     ]);
@@ -275,13 +263,14 @@ const createApp = {
   counter: (config = {}) => {
     const [count, setCount] = useState(config.initialValue || 0);
     const step = config.step || 1;
-    
+    const resetValue = config.initialValue || 0;
+
     return div({ className: 'counter-app' }, [
       h1(config.title || 'Counter'),
       div({ className: 'counter-display' }, count),
       div({ className: 'counter-controls' }, [
         button({ onClick: () => setCount(count - step) }, '-'),
-        button({ onClick: () => setCount(config.initialValue || 0) }, 'Reset'),
+        button({ onClick: () => setCount(resetValue) }, 'Reset'),
         button({ onClick: () => setCount(count + step) }, '+')
       ])
     ]);
@@ -289,16 +278,13 @@ const createApp = {
   
   // Complete dashboard layout
   dashboard: (config) => {
+    const { header, sidebar, widgets } = config;
     return div({ className: 'dashboard' }, [
-      when(config.header, 
-        div({ className: 'dashboard-header' }, config.header)
-      ),
+      when(header, div({ className: 'dashboard-header' }, header)),
       div({ className: 'dashboard-content' }, [
-        when(config.sidebar, 
-          div({ className: 'dashboard-sidebar' }, config.sidebar)
-        ),
-        div({ className: 'dashboard-main' }, 
-          config.widgets.map((widget, index) => 
+        when(sidebar, div({ className: 'dashboard-sidebar' }, sidebar)),
+        div({ className: 'dashboard-main' },
+          widgets?.map((widget, index) =>
             div({ className: 'dashboard-widget', key: index }, widget)
           )
         )
@@ -324,14 +310,11 @@ const safeRender = (component, target) => {
     return render(component, target);
   } catch (e) {
     console.error('Render error:', e);
-    return render(
-      div({ className: 'error-boundary' }, [
-        h2('Render Error'),
-        p(`Error: ${e.message}`),
-        button({ onClick: () => location.reload() }, 'Reload Page')
-      ]), 
-      target
-    );
+    return render(div({ className: 'error-boundary' }, [
+      h2('Render Error'),
+      p(`Error: ${e.message}`),
+      button({ onClick: () => location.reload() }, 'Reload Page')
+    ]), target);
   }
 };
 

@@ -10,23 +10,25 @@ const isServer = typeof window === 'undefined';
 
 // HTML attribute serialization
 const serializeAttrs = (props) => {
-  const attrs = [];
-  Object.keys(props).forEach(key => {
-    if (key === 'children' || key === 'key') return;
-    
+  if (!props || typeof props !== 'object') return '';
+
+  let result = '';
+  for (const key in props) {
+    if (key === 'children' || key === 'key') continue;
+
     const value = props[key];
     if (key.startsWith('on') && typeof value === 'function') {
       // Skip event handlers in SSR
-      return;
+      continue;
     }
-    
+
     if (value === true) {
-      attrs.push(key);
+      result += ` ${key}`;
     } else if (value !== false && value != null) {
-      attrs.push(`${key}="${sanitizeText(String(value))}"`);
+      result += ` ${key}="${sanitizeText(String(value))}"`;
     }
-  });
-  return attrs.length > 0 ? ` ${attrs.join(' ')}` : '';
+  }
+  return result;
 };
 
 // Self-closing HTML tags
@@ -44,7 +46,11 @@ const vnodeToString = (vnode) => {
   }
   
   if (Array.isArray(vnode)) {
-    return vnode.map(vnodeToString).join('');
+    let result = '';
+    for (let i = 0; i < vnode.length; i++) {
+      result += vnodeToString(vnode[i]);
+    }
+    return result;
   }
   
   if (typeof vnode === 'function') {
@@ -133,11 +139,16 @@ const hydrate = (component, container, serverHTML) => {
   }
 };
 
-// Normalize HTML for comparison (remove whitespace differences)
+// Normalize HTML for comparison (remove insignificant whitespace differences)
 const normalizeHTML = (html) => {
   return html
-    .replace(/>\s+</g, '><')
-    .replace(/^\s+|\s+$/g, '')
+    // Normalize whitespace between tags but preserve content spacing
+    .replace(/>\s+</g, '>\n<')
+    .replace(/^\s+/, '')
+    .replace(/\s+$/, '')
+    // Normalize attribute quotes
+    .replace(/=['"]\s+/g, '="')
+    .replace(/\s+['"]/g, '"')
     .toLowerCase();
 };
 
