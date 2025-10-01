@@ -164,25 +164,25 @@
   </div>
 
   <script type="module">
-    // Import MinimaJS - works with ES modules
-    import { 
+    // Import MinimaJS from local files
+    import {
       // Core hooks and elements
       useState, div, h1, h2, button, span,
-      // Template syntax  
+      // Template syntax
       html, input,
       // LLM-optimized APIs
       quickForm, quickCard, $div, $button,
       // Rendering
       render
-    } from '@tolinsimpson/minimajs';
+    } from '../dist/minima-full.min.js';
 
     // =========================================================================
     // 1. Basic Counter - Shows React-like hooks
     // =========================================================================
-    
+
     const Counter = () => {
       const [count, setCount] = useState(0);
-      
+
       return div({ className: 'counter' }, [
         div({ className: 'counter-display' }, count),
         button({ onClick: () => setCount(count - 1) }, '−'),
@@ -296,13 +296,13 @@
     // =========================================================================
     // Render all demos
     // =========================================================================
-    
-    render(Counter(), document.getElementById('counter-demo'));
-    render(TodoApp(), document.getElementById('todo-demo'));
-    render(LLMDemo(), document.getElementById('llm-demo'));
+
+    render(Counter, document.getElementById('counter-demo'));
+    render(TodoApp, document.getElementById('todo-demo'));
+    render(LLMDemo, document.getElementById('llm-demo'));
     
     console.log('MinimaJS demos loaded!');
-    console.log('Bundle size: ~18KB total');
+    console.log('Using: minima-full.min.js (~37KB)');
     console.log('Zero dependencies');
     console.log('LLM-optimized APIs available');
   </script>

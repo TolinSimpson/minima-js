@@ -6,8 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-green.svg)](https://github.com/tolinsimpson/minima-js)
 
-## Notice: 
-I vibe coded this. lol
+**This was vibe coded lol**
 
 ## Why MinimaJS?
 
@@ -17,6 +16,217 @@ I vibe coded this. lol
 - **LLM-optimized** - AI-friendly APIs for faster development
 - **Modern features** - Hooks, SSR, TypeScript, templating
 - **XSS-safe** - Built-in security by default
+
+## Framework Comparison
+
+### Feature Comparison
+
+| Feature | MinimaJS | React | Vue 3 | Preact | Svelte |
+|---------|----------|-------|-------|--------|--------|
+| **Virtual DOM** | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **Hooks** | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **SSR** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **TypeScript** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **useMemo/useCallback** | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **Concurrent Features** | ✅ | ✅ | ✅ | ❌ | ❌ |
+| **Error Boundaries** | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **Suspense** | ✅ | ✅ | ✅ | ❌ | ✅ |
+| **Zero Dependencies** | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Template Literals** | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Built-in XSS Protection** | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **LLM-Optimized API** | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Advanced DevTools** | ✅ | ✅ | ✅ | ❌ | ✅ |
+
+### Bundle Size Comparison
+
+| Framework | Core | Full | Minified | Notes |
+|-----------|------|------|----------|-------|
+| **MinimaJS** | 13KB | 53KB | 9KB core, 37KB full | All features in single file |
+| React + ReactDOM | 130KB | 130KB | 42KB (+deps) | Requires ecosystem |
+| Vue 3 | 120KB | 120KB | 34KB (+deps) | Requires ecosystem |
+| Svelte | 1KB | 1KB | 1KB (compiled) | Compile-time only |
+| Preact | 10KB | 10KB | 3KB (+deps) | React-compatible only |
+
+*MinimaJS includes React 18+ features while being smaller than React. The combined file provides all features in a single import.*
+
+### Developer Experience
+
+| Aspect | MinimaJS | React | Vue 3 | Svelte |
+|--------|----------|-------|-------|--------|
+| **Learning Curve** | Minimal | Moderate | Moderate | Steep |
+| **Boilerplate** | Ultra-minimal | High | Moderate | Low |
+| **AI Code Gen** | Optimized | Standard | Standard | Limited |
+| **Setup Complexity** | Zero config | High | Moderate | Build required |
+
+## Syntax Comparison
+
+### Basic Component
+
+<details>
+<summary><strong>MinimaJS vs React vs Vue</strong></summary>
+
+**MinimaJS**
+```javascript
+import { div, h1, button, useState, app } from '@tolinsimpson/minimajs/full';
+
+const Counter = () => {
+  const [count, setCount] = useState(0);
+  return div([
+    h1(`Count: ${count}`),
+    button({ onClick: () => setCount(count + 1) }, 'Click me!')
+  ]);
+};
+
+app(Counter, 'app');
+```
+
+**React**
+```jsx
+import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
+
+const Counter = () => {
+  const [count, setCount] = useState(0);
+  return (
+    <div>
+      <h1>Count: {count}</h1>
+      <button onClick={() => setCount(count + 1)}>Click me!</button>
+    </div>
+  );
+};
+
+ReactDOM.render(<Counter />, document.getElementById('app'));
+```
+
+**Vue 3**
+```vue
+<template>
+  <div>
+    <h1>Count: {{ count }}</h1>
+    <button @click="count++">Click me!</button>
+  </div>
+</template>
+
+<script setup>
+import { ref } from 'vue'
+const count = ref(0)
+</script>
+```
+
+</details>
+
+### Template Syntax
+
+<details>
+<summary><strong>HTML Templates Comparison</strong></summary>
+
+**MinimaJS**
+```javascript
+import { html, useState } from '@tolinsimpson/minimajs/full';
+
+const TodoApp = () => {
+  const [todos, setTodos] = useState([]);
+  return html`
+    <div class="todo-app">
+      <h1>Todos</h1>
+      ${todos.map(todo => html`
+        <div class="todo ${todo.done ? 'done' : ''}">
+          ${todo.text}
+        </div>
+      `)}
+    </div>
+  `;
+};
+```
+
+**React (JSX)**
+```jsx
+const TodoApp = () => {
+  const [todos, setTodos] = useState([]);
+  return (
+    <div className="todo-app">
+      <h1>Todos</h1>
+      {todos.map(todo => (
+        <div key={todo.id} className={`todo ${todo.done ? 'done' : ''}`}>
+          {todo.text}
+        </div>
+      ))}
+    </div>
+  );
+};
+```
+
+**Vue 3**
+```vue
+<template>
+  <div class="todo-app">
+    <h1>Todos</h1>
+    <div v-for="todo in todos" :key="todo.id" 
+         :class="['todo', { done: todo.done }]">
+      {{ todo.text }}
+    </div>
+  </div>
+</template>
+```
+
+</details>
+
+### State Management
+
+<details>
+<summary><strong>State & Effects Comparison</strong></summary>
+
+**MinimaJS**
+```javascript
+import { useState, useEffect, toggle, counter } from '@tolinsimpson/minimajs/full';
+
+const UserProfile = ({ userId }) => {
+  const [user, setUser] = useState(null);
+  const [loading, toggleLoading] = toggle(true);
+  const [visits, increment] = counter(0);
+  
+  useEffect(() => {
+    fetch(`/users/${userId}`)
+      .then(res => res.json())
+      .then(setUser)
+      .finally(() => toggleLoading());
+  }, [userId]);
+  
+  return user ? div([
+    p(`Name: ${user.name}`),
+    button({ onClick: increment }, `Visits: ${visits}`)
+  ]) : div('Loading...');
+};
+```
+
+**React**
+```jsx
+import { useState, useEffect } from 'react';
+
+const UserProfile = ({ userId }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [visits, setVisits] = useState(0);
+  
+  useEffect(() => {
+    fetch(`/users/${userId}`)
+      .then(res => res.json())
+      .then(setUser)
+      .finally(() => setLoading(false));
+  }, [userId]);
+  
+  return user ? (
+    <div>
+      <p>Name: {user.name}</p>
+      <button onClick={() => setVisits(v => v + 1)}>
+        Visits: {visits}
+      </button>
+    </div>
+  ) : <div>Loading...</div>;
+};
+```
+
+</details>
 
 ## Quick Start
 
@@ -707,8 +917,8 @@ const UserCard = ({ user }: { user: User }) => {
 ## Testing
 
 ```javascript
-// examples/minima.test.js
-import { createElement, useState, render } from '@tolinsimpson/minimajs/full';
+// Examples use the combined file for simplicity - see examples/README.md for details
+import { createElement, useState, render } from '@tolinsimpson/minimajs';
 
 const TestComponent = () => {
   const [count, setCount] = useState(0);
@@ -721,237 +931,6 @@ const TestComponent = () => {
 // Test renders and state updates
 render(TestComponent(), document.body);
 ```
-
-## Framework Comparison
-
-### Feature Comparison
-
-| Feature | MinimaJS | React | Vue 3 | Preact | Svelte |
-|---------|----------|-------|-------|--------|--------|
-| **Virtual DOM** | ✅ | ✅ | ✅ | ✅ | ❌ |
-| **Hooks** | ✅ | ✅ | ✅ | ✅ | ❌ |
-| **SSR** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **TypeScript** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **useMemo/useCallback** | ✅ | ✅ | ✅ | ✅ | ❌ |
-| **Concurrent Features** | ✅ | ✅ | ✅ | ❌ | ❌ |
-| **Error Boundaries** | ✅ | ✅ | ✅ | ✅ | ❌ |
-| **Suspense** | ✅ | ✅ | ✅ | ❌ | ✅ |
-| **Zero Dependencies** | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **Template Literals** | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **Built-in XSS Protection** | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **LLM-Optimized API** | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **Advanced DevTools** | ✅ | ✅ | ✅ | ❌ | ✅ |
-
-### Bundle Size Comparison
-
-| Framework | Core | Full | Minified | Notes |
-|-----------|------|------|----------|-------------------|-------|
-| **MinimaJS** | 13KB | 53KB | 9KB core, 37KB full | All features in single file |
-| React + ReactDOM | 130KB | 130KB | 42KB (+deps) | Requires ecosystem |
-| Vue 3 | 120KB | 120KB | 34KB (+deps) | Requires ecosystem |
-| Svelte | 1KB | 1KB | 1KB (compiled) | Compile-time only |
-| Preact | 10KB | 10KB | 3KB (+deps) | React-compatible only |
-
-*MinimaJS includes React 18+ features while being smaller than React. The combined file provides all features in a single import.*
-
-### Production Readiness
-
-MinimaJS is **production-ready** for modern web applications with these considerations:
-
-**✅ Production Strengths:**
-- **Enterprise-grade security** (comprehensive XSS protection with 50+ blocked event handlers)
-- **Zero dependencies** (no supply chain vulnerabilities)
-- **Modern ES modules support** with tree-shaking and combined file option
-- **Efficient Virtual DOM** with key-based reconciliation and optimized algorithms
-- **Built-in SSR and hydration** with streaming support
-- **Advanced React 18+ features** (useMemo, useCallback, Suspense, concurrent rendering)
-
-**🏆 Competitive Advantages:**
-- **Smaller than React** while including React 18+ features
-- **Built-in enterprise security** (comprehensive XSS protection)
-- **Zero-configuration setup** vs React's complex tooling requirements
-- **Advanced developer experience** (template literals, LLM-optimized APIs)
-- **Flexible deployment options** (modular for optimal bundles, combined for simplicity)
-- **Future-proof architecture** (ES modules, tree-shakeable, modern patterns)
-
-### Developer Experience
-
-| Aspect | MinimaJS | React | Vue 3 | Svelte |
-|--------|----------|-------|-------|--------|
-| **Learning Curve** | Minimal | Moderate | Moderate | Steep |
-| **Boilerplate** | Ultra-minimal | High | Moderate | Low |
-| **AI Code Gen** | Optimized | Standard | Standard | Limited |
-| **Setup Complexity** | Zero config | High | Moderate | Build required |
-
-## Syntax Comparison
-
-### Basic Component
-
-<details>
-<summary><strong>MinimaJS vs React vs Vue</strong></summary>
-
-**MinimaJS**
-```javascript
-import { div, h1, button, useState, app } from '@tolinsimpson/minimajs/full';
-
-const Counter = () => {
-  const [count, setCount] = useState(0);
-  return div([
-    h1(`Count: ${count}`),
-    button({ onClick: () => setCount(count + 1) }, 'Click me!')
-  ]);
-};
-
-app(Counter, 'app');
-```
-
-**React**
-```jsx
-import React, { useState } from 'react';
-import ReactDOM from 'react-dom';
-
-const Counter = () => {
-  const [count, setCount] = useState(0);
-  return (
-    <div>
-      <h1>Count: {count}</h1>
-      <button onClick={() => setCount(count + 1)}>Click me!</button>
-    </div>
-  );
-};
-
-ReactDOM.render(<Counter />, document.getElementById('app'));
-```
-
-**Vue 3**
-```vue
-<template>
-  <div>
-    <h1>Count: {{ count }}</h1>
-    <button @click="count++">Click me!</button>
-  </div>
-</template>
-
-<script setup>
-import { ref } from 'vue'
-const count = ref(0)
-</script>
-```
-
-</details>
-
-### Template Syntax
-
-<details>
-<summary><strong>HTML Templates Comparison</strong></summary>
-
-**MinimaJS**
-```javascript
-import { html, useState } from '@tolinsimpson/minimajs/full';
-
-const TodoApp = () => {
-  const [todos, setTodos] = useState([]);
-  return html`
-    <div class="todo-app">
-      <h1>Todos</h1>
-      ${todos.map(todo => html`
-        <div class="todo ${todo.done ? 'done' : ''}">
-          ${todo.text}
-        </div>
-      `)}
-    </div>
-  `;
-};
-```
-
-**React (JSX)**
-```jsx
-const TodoApp = () => {
-  const [todos, setTodos] = useState([]);
-  return (
-    <div className="todo-app">
-      <h1>Todos</h1>
-      {todos.map(todo => (
-        <div key={todo.id} className={`todo ${todo.done ? 'done' : ''}`}>
-          {todo.text}
-        </div>
-      ))}
-    </div>
-  );
-};
-```
-
-**Vue 3**
-```vue
-<template>
-  <div class="todo-app">
-    <h1>Todos</h1>
-    <div v-for="todo in todos" :key="todo.id" 
-         :class="['todo', { done: todo.done }]">
-      {{ todo.text }}
-    </div>
-  </div>
-</template>
-```
-
-</details>
-
-### State Management
-
-<details>
-<summary><strong>State & Effects Comparison</strong></summary>
-
-**MinimaJS**
-```javascript
-import { useState, useEffect, toggle, counter } from '@tolinsimpson/minimajs/full';
-
-const UserProfile = ({ userId }) => {
-  const [user, setUser] = useState(null);
-  const [loading, toggleLoading] = toggle(true);
-  const [visits, increment] = counter(0);
-  
-  useEffect(() => {
-    fetch(`/users/${userId}`)
-      .then(res => res.json())
-      .then(setUser)
-      .finally(() => toggleLoading());
-  }, [userId]);
-  
-  return user ? div([
-    p(`Name: ${user.name}`),
-    button({ onClick: increment }, `Visits: ${visits}`)
-  ]) : div('Loading...');
-};
-```
-
-**React**
-```jsx
-import { useState, useEffect } from 'react';
-
-const UserProfile = ({ userId }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [visits, setVisits] = useState(0);
-  
-  useEffect(() => {
-    fetch(`/users/${userId}`)
-      .then(res => res.json())
-      .then(setUser)
-      .finally(() => setLoading(false));
-  }, [userId]);
-  
-  return user ? (
-    <div>
-      <p>Name: {user.name}</p>
-      <button onClick={() => setVisits(v => v + 1)}>
-        Visits: {visits}
-      </button>
-    </div>
-  ) : <div>Loading...</div>;
-};
-```
-
-</details>
 
 ## Contributing
 
@@ -970,7 +949,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ## Links
 
 - [Documentation](https://minimajs.dev)
-- [Examples](./examples/)
+- [Examples](./examples/) - Run with `cd MinimaJS && python3 -m http.server 8000`
 - [GitHub Package](https://github.com/tolinsimpson/minima-js/packages)
 - [GitHub](https://github.com/tolinsimpson/minima-js)
 - [Issues](https://github.com/tolinsimpson/minima-js/issues)
