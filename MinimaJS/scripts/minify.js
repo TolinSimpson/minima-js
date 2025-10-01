@@ -6,41 +6,36 @@
 import fs from 'fs';
 import path from 'path';
 
-function minify(content) {
-  // Single-pass minification with combined operations
-  return content
-    // Remove block comments (preserve line comments for source maps)
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    // Remove line comments but preserve JSDoc-style comments
-    .replace(/\/\/(?![\s]*\*).*$/gm, '')
-    // Multi-pass whitespace optimization
-    .replace(/\s*([{}()[\].,;:!?|=+-/*&|^<>~%])\s*/g, '$1')
-    .replace(/\s+/g, ' ')
-    // Remove trailing whitespace
-    .trim()
-    // Remove empty lines
-    .replace(/\n\s*\n/g, '\n');
-}
+const minify = (content) => content
+  .replace(/\/\*[\s\S]*?\*\//g, '')
+  .replace(/\/\/(?![\s]*\*).*$/gm, '')
+  .replace(/\s*([{}()[\].,;:!?|=+-/*&|^<>~%])\s*/g, '$1')
+  .replace(/\s+/g, ' ')
+  .trim()
+  .replace(/\n\s*\n/g, '\n');
 
 // Files to minify
 const files = [
-  'lib/minima-core.js',
-  'lib/minima-api.js',
-  'lib/minima-component.js',
-  'lib/minima-template.js',
-  'lib/minima-ssr.js',
-  'lib/minima-llm.js',
-  'lib/minima-devtools.js',
-  'src/minima.js'
+  'MinimaJS/lib/minima-core.js',
+  'MinimaJS/lib/minima-api.js',
+  'MinimaJS/lib/minima-component.js',
+  'MinimaJS/lib/minima-template.js',
+  'MinimaJS/lib/minima-ssr.js',
+  'MinimaJS/lib/minima-llm.js',
+  'MinimaJS/lib/minima-devtools.js',
+  'MinimaJS/lib/minima-full.js',
+  'MinimaJS/src/minima.js'
 ];
 
 console.log('Building minified versions...\n');
 
 // Ensure dist directory exists
-fs.mkdirSync('dist', { recursive: true });
+fs.mkdirSync('MinimaJS/dist', { recursive: true });
 
 let totalOriginalSize = 0;
 let totalMinifiedSize = 0;
+
+const toKB = (bytes) => Math.round(bytes / 102.4) / 10;
 
 files.forEach(file => {
   try {
@@ -48,26 +43,17 @@ files.forEach(file => {
     const minified = minify(content);
     
     const basename = path.basename(file, '.js');
-    const outputFile = path.join('dist', basename + '.min.js');
+    fs.writeFileSync(path.join('MinimaJS/dist', basename + '.min.js'), minified);
     
-    fs.writeFileSync(outputFile, minified);
+    const oLen = content.length, mLen = minified.length;
+    totalOriginalSize += oLen;
+    totalMinifiedSize += mLen;
     
-    const originalKB = Math.round(content.length / 1024 * 10) / 10;
-    const minifiedKB = Math.round(minified.length / 1024 * 10) / 10;
-    const savings = Math.round((1 - minified.length / content.length) * 100);
-    
-    totalOriginalSize += content.length;
-    totalMinifiedSize += minified.length;
-    
-    console.log(`${basename}.min.js: ${originalKB}KB → ${minifiedKB}KB (${savings}% smaller)`);
+    console.log(`${basename}.min.js: ${toKB(oLen)}KB → ${toKB(mLen)}KB (${Math.round((1 - mLen / oLen) * 100)}% smaller)`);
   } catch (error) {
     console.error(`Error processing ${file}:`, error.message);
   }
 });
 
-const totalOriginalKB = Math.round(totalOriginalSize / 1024 * 10) / 10;
-const totalMinifiedKB = Math.round(totalMinifiedSize / 1024 * 10) / 10;
-const totalSavings = Math.round((1 - totalMinifiedSize / totalOriginalSize) * 100);
-
-console.log(`\nTotal: ${totalOriginalKB}KB → ${totalMinifiedKB}KB (${totalSavings}% reduction)`);
+console.log(`\nTotal: ${toKB(totalOriginalSize)}KB → ${toKB(totalMinifiedSize)}KB (${Math.round((1 - totalMinifiedSize / totalOriginalSize) * 100)}% reduction)`);
 console.log('Build complete!');

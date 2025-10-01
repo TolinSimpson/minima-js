@@ -2,11 +2,15 @@
  * MinimaJS DevTools v1.0.0 - Lightweight debugging utilities
  */
 
+// Cached constants
+const HAS_WINDOW = typeof window !== 'undefined';
+const WARN_DISABLED = 'MinimaJS DevTools not enabled. Set window.__MINIMA_DEVTOOLS__ = true to enable.';
+
 // Dev tools state (minimal overhead)
-let devToolsEnabled = typeof window !== 'undefined' && window.__MINIMA_DEVTOOLS__;
+let devToolsEnabled = HAS_WINDOW && window.__MINIMA_DEVTOOLS__;
 let componentTree = new Map();
 let renderTimings = new Map();
-let currentComponent = null; // Set by core framework
+let currentComponent = null;
 
 // Dev tools hook for component inspection
 const useDevTools = (componentName) => {
@@ -48,63 +52,36 @@ const useProfiler = (componentName) => {
 
 // Component tree inspector
 const inspectComponentTree = () => {
-  if (!devToolsEnabled) {
-    console.warn('MinimaJS DevTools not enabled. Set window.__MINIMA_DEVTOOLS__ = true to enable.');
-    return;
-  }
-
+  if (!devToolsEnabled) return console.warn(WARN_DISABLED);
   const components = Array.from(componentTree.entries());
-  if (components.length === 0) {
-    console.log('No components tracked');
-    return;
-  }
-
+  if (!components.length) return console.log('No components tracked');
   console.log(`MinimaJS Components (${components.length}):`);
-  components.forEach(([component, info]) => {
-    console.log(`  ${info.name}: ${info.renderCount} renders`);
-  });
+  components.forEach(([, info]) => console.log(`  ${info.name}: ${info.renderCount} renders`));
 };
 
 // Performance analyzer
 const analyzePerformance = () => {
-  if (!devToolsEnabled) {
-    console.warn('MinimaJS DevTools not enabled. Set window.__MINIMA_DEVTOOLS__ = true to enable.');
-    return;
-  }
-
+  if (!devToolsEnabled) return console.warn(WARN_DISABLED);
   const timings = Array.from(renderTimings.values());
-  if (timings.length === 0) {
-    console.log('Performance: No renders tracked');
-    return;
-  }
+  if (!timings.length) return console.log('Performance: No renders tracked');
 
-  let totalTime = 0;
-  let maxTime = 0;
+  const totalTime = timings.reduce((sum, t) => sum + t.renderTime, 0);
+  const maxTime = Math.max(...timings.map(t => t.renderTime));
 
-  for (let i = 0; i < timings.length; i++) {
-    const time = timings[i].renderTime;
-    totalTime += time;
-    if (time > maxTime) maxTime = time;
-  }
-
-  const avgTime = totalTime / timings.length;
-  console.log(`Performance: ${timings.length} renders, ${avgTime.toFixed(2)}ms avg, ${maxTime.toFixed(2)}ms max`);
+  console.log(`Performance: ${timings.length} renders, ${(totalTime / timings.length).toFixed(2)}ms avg, ${maxTime.toFixed(2)}ms max`);
 };
 
-// Enable dev tools globally
+// Enable/disable dev tools globally
 const enableDevTools = () => {
-  if (typeof window !== 'undefined') {
-    window.__MINIMA_DEVTOOLS__ = true;
-    devToolsEnabled = true;
+  if (HAS_WINDOW) {
+    window.__MINIMA_DEVTOOLS__ = devToolsEnabled = true;
     console.log('MinimaJS DevTools enabled');
   }
 };
 
-// Disable dev tools globally
 const disableDevTools = () => {
-  if (typeof window !== 'undefined') {
-    window.__MINIMA_DEVTOOLS__ = false;
-    devToolsEnabled = false;
+  if (HAS_WINDOW) {
+    window.__MINIMA_DEVTOOLS__ = devToolsEnabled = false;
     console.log('MinimaJS DevTools disabled');
   }
 };

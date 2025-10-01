@@ -37,28 +37,18 @@ const URL_ATTRS = new Set([
 ]);
 
 // Sanitize text content
+const ESC_MAP = { '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;', '/': '&#x2F;' };
 const sanitizeText = (text) => {
   if (typeof text !== 'string') return String(text);
-  return text.replace(/[<>"'\/]/g, (match) => {
-    switch (match) {
-      case '<': return '&lt;';
-      case '>': return '&gt;';
-      case '"': return '&quot;';
-      case "'": return '&#x27;';
-      case '/': return '&#x2F;';
-      default: return match;
-    }
-  });
+  return text.replace(/[<>"'\/]/g, (match) => ESC_MAP[match]);
 };
 
 // Validate URLs for XSS protection
 const isValidUrl = (url) => {
   if (typeof url !== 'string') return false;
   const trimmed = url.trim().toLowerCase();
-  return !(trimmed.startsWith('javascript:') ||
-           trimmed.startsWith('data:') ||
-           trimmed.startsWith('vbscript:') ||
-           trimmed.includes('javascript:'));
+  return !trimmed.startsWith('javascript:') && !trimmed.startsWith('data:') && 
+         !trimmed.startsWith('vbscript:') && !trimmed.includes('javascript:');
 };
 
 // Sanitize attribute value
@@ -66,12 +56,7 @@ const sanitizeAttr = (name, value) => {
   const nameLower = name.toLowerCase();
   if (DANGEROUS_ATTRS.has(nameLower)) return null;
   if (URL_ATTRS.has(nameLower) && !isValidUrl(value)) return null;
-  if (typeof value === 'string') {
-    return value.replace(/["']/g, (match) =>
-      match === '"' ? '&quot;' : '&#x27;'
-    );
-  }
-  return value;
+  return typeof value === 'string' ? value.replace(/["']/g, (m) => m === '"' ? '&quot;' : '&#x27;') : value;
 };
 
 // HTML parser state machine
@@ -88,12 +73,8 @@ const parseHTML = (html) => {
       const isClosing = tagContent.startsWith('/');
       const tagName = (isClosing ? tagContent.slice(1) : tagContent).split(/\s/)[0].toLowerCase();
       
-      if (isClosing) {
-        tokens.push({ type: 'close', tag: tagName });
-      } else {
-        const attrs = parseAttrs(tagContent.slice(tagName.length));
-        tokens.push({ type: 'open', tag: tagName, attrs, self: tagContent.endsWith('/') });
-      }
+      tokens.push(isClosing ? { type: 'close', tag: tagName } : 
+        { type: 'open', tag: tagName, attrs: parseAttrs(tagContent.slice(tagName.length)), self: tagContent.endsWith('/') });
       i = tagEnd + 1;
     } else {
       const nextTag = html.indexOf('<', i);
@@ -102,7 +83,6 @@ const parseHTML = (html) => {
       i = nextTag === -1 ? html.length : nextTag;
     }
   }
-  
   return tokens;
 };
 
@@ -128,29 +108,14 @@ const tokensToVNode = (tokens) => {
   tokens.forEach(token => {
     const current = stack[stack.length - 1];
     
-    switch (token.type) {
-      case 'text':
-        current.children.push(sanitizeText(token.content));
-        break;
-        
-      case 'open':
-        if (DANGEROUS_TAGS.has(token.tag)) break;
-        
-        const element = {
-          type: token.tag,
-          props: { ...token.attrs },
-          children: []
-        };
-        
-        current.children.push(element);
-        if (!token.self) stack.push(element);
-        break;
-        
-      case 'close':
-        if (stack.length > 1 && !DANGEROUS_TAGS.has(token.tag)) {
-          stack.pop();
-        }
-        break;
+    if (token.type === 'text') {
+      current.children.push(sanitizeText(token.content));
+    } else if (token.type === 'open' && !DANGEROUS_TAGS.has(token.tag)) {
+      const element = { type: token.tag, props: { ...token.attrs }, children: [] };
+      current.children.push(element);
+      if (!token.self) stack.push(element);
+    } else if (token.type === 'close' && stack.length > 1 && !DANGEROUS_TAGS.has(token.tag)) {
+      stack.pop();
     }
   });
   
@@ -159,65 +124,49 @@ const tokensToVNode = (tokens) => {
 
 // Template literal processor
 const html = (strings, ...values) => {
-  // Build result string efficiently
   let result = '';
-  for (let i = 0; i < strings.length; i++) {
-    result += strings[i];
+  strings.forEach((str, i) => {
+    result += str;
     if (i < values.length) {
       const value = values[i];
       if (typeof value === 'function') {
         result += `__HANDLER_${i}__`;
       } else if (Array.isArray(value)) {
-        // Process array values more efficiently
-        for (let j = 0; j < value.length; j++) {
-          const item = value[j];
-          result += typeof item === 'string' ? sanitizeText(item) : '__VNODE__';
-        }
+        value.forEach(v => result += typeof v === 'string' ? sanitizeText(v) : '__VNODE__');
       } else {
         result += sanitizeText(value);
       }
     }
-  }
+  });
 
-  // Parse HTML and convert to VNodes
-  const tokens = parseHTML(result);
-  const vnodes = tokensToVNode(tokens);
+  const vnodes = tokensToVNode(parseHTML(result));
 
-  // Process handlers and VNodes
   const processVNode = (vnode) => {
     if (typeof vnode === 'string') {
       return vnode.replace(/__HANDLER_(\d+)__/g, (match, idx) => {
-        const handler = values[parseInt(idx)];
+        const handler = values[+idx];
         return typeof handler === 'function' ? handler : match;
       });
     }
 
     if (vnode?.type && vnode.props) {
-      // Process attributes for handlers
-      const props = vnode.props;
-      for (const key in props) {
-        const value = props[key];
+      Object.keys(vnode.props).forEach(key => {
+        const value = vnode.props[key];
         if (typeof value === 'string' && value.includes('__HANDLER_')) {
           const handlerMatch = value.match(/__HANDLER_(\d+)__/);
           if (handlerMatch) {
-            const handlerIdx = parseInt(handlerMatch[1]);
-            const handler = values[handlerIdx];
+            const handler = values[+handlerMatch[1]];
             if (typeof handler === 'function') {
               const eventName = key.startsWith('on') ? key : `on${key}`;
-              delete props[key];
-              props[eventName] = handler;
+              delete vnode.props[key];
+              vnode.props[eventName] = handler;
             }
           }
         }
-      }
+      });
 
-      // Process children recursively
       if (vnode.children?.length) {
-        const processedChildren = new Array(vnode.children.length);
-        for (let i = 0; i < vnode.children.length; i++) {
-          processedChildren[i] = processVNode(vnode.children[i]);
-        }
-        vnode.children = processedChildren;
+        vnode.children = vnode.children.map(processVNode);
         vnode.props.children = vnode.children;
       }
 
@@ -227,14 +176,9 @@ const html = (strings, ...values) => {
     return vnode;
   };
 
-  // Single root element or fragment
-  if (vnodes.length === 1) {
-    return processVNode(vnodes[0]);
-  } else if (vnodes.length > 1) {
-    return createElement('div', { className: 'minima-fragment' }, ...vnodes.map(processVNode));
-  } else {
-    return null;
-  }
+  if (vnodes.length === 1) return processVNode(vnodes[0]);
+  if (vnodes.length > 1) return createElement('div', { className: 'minima-fragment' }, ...vnodes.map(processVNode));
+  return null;
 };
 
 // CSP-compatible dynamic imports

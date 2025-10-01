@@ -7,13 +7,24 @@ let currentComponent = null;
 let hookIndex = 0;
 let components = new WeakMap();
 
+// Cached constants
+const CHILDREN = 'children';
+const ERR_OUTSIDE = 'outside component';
+
 const depsEqual = (a, b) => {
   if (!a || !b) return a === b;
   if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
+  return a.every((v, i) => v === b[i]);
+};
+
+// Hook initialization helper
+const initHook = (name) => {
+  if (!currentComponent) throw new Error(`${name}: ${ERR_OUTSIDE}`);
+  const comp = components.get(currentComponent);
+  const idx = hookIndex++;
+  if (!comp.hooks) comp.hooks = [];
+  if (!comp.hooks[idx]) comp.hooks[idx] = {};
+  return [comp, idx, comp.hooks[idx]];
 };
 
 // Concurrent rendering state
@@ -35,8 +46,8 @@ const createElement = (type, props = {}, ...children) => {
 
   // Create props object only if needed
   const vnodeProps = props && Object.keys(props).length > 0
-    ? { ...props, children: flatChildren }
-    : { children: flatChildren };
+    ? { ...props, [CHILDREN]: flatChildren }
+    : { [CHILDREN]: flatChildren };
 
   const vnode = {
     type,
@@ -64,16 +75,10 @@ const createElement = (type, props = {}, ...children) => {
 
 // Component state hook
 const useState = (initial) => {
-  if (!currentComponent) throw new Error('useState: outside component');
-  
-  const comp = components.get(currentComponent);
-  const idx = hookIndex++;
-  
-  if (!comp.hooks) comp.hooks = [];
-  if (comp.hooks[idx] === undefined) comp.hooks[idx] = { state: initial };
+  const [comp, idx, hook] = initHook('useState');
+  if (hook.state === undefined) hook.state = initial;
   
   const setState = (newState) => {
-    const hook = comp.hooks[idx];
     const value = typeof newState === 'function' ? newState(hook.state) : newState;
     if (hook.state !== value) {
       hook.state = value;
@@ -81,85 +86,46 @@ const useState = (initial) => {
     }
   };
   
-  return [comp.hooks[idx].state, setState];
+  return [hook.state, setState];
 };
 
 // Effect hook with dependency tracking
 const useEffect = (effect, deps) => {
-  if (!currentComponent) throw new Error('useEffect: outside component');
-
-  const comp = components.get(currentComponent);
-  const idx = hookIndex++;
-
-  if (!comp.hooks) comp.hooks = [];
-  if (!comp.hooks[idx]) comp.hooks[idx] = {};
-
-  const hook = comp.hooks[idx];
-  const depsChanged = !depsEqual(hook.deps, deps);
-
-  if (depsChanged) {
+  const [comp, idx, hook] = initHook('useEffect');
+  
+  if (!depsEqual(hook.deps, deps)) {
     if (hook.cleanup) hook.cleanup();
     hook.cleanup = effect();
     hook.deps = deps;
   }
 
-  // Cleanup on unmount
-  if (!comp.cleanup) {
-    comp.cleanup = () => {
-      comp.hooks?.forEach(h => h.cleanup?.());
-    };
-  }
+  if (!comp.cleanup) comp.cleanup = () => comp.hooks?.forEach(h => h.cleanup?.());
 };
 
 // Memo hook for expensive computations
 const useMemo = (factory, deps) => {
-  if (!currentComponent) throw new Error('useMemo: outside component');
-
-  const comp = components.get(currentComponent);
-  const idx = hookIndex++;
-
-  if (!comp.hooks) comp.hooks = [];
-  if (!comp.hooks[idx]) comp.hooks[idx] = {};
-
-  const hook = comp.hooks[idx];
+  const [, , hook] = initHook('useMemo');
   if (!depsEqual(hook.deps, deps)) {
     hook.value = factory();
     hook.deps = deps;
   }
-
   return hook.value;
 };
 
 // Callback hook for stable function references
 const useCallback = (callback, deps) => {
-  if (!currentComponent) throw new Error('useCallback: outside component');
-
-  const comp = components.get(currentComponent);
-  const idx = hookIndex++;
-
-  if (!comp.hooks) comp.hooks = [];
-  if (!comp.hooks[idx]) comp.hooks[idx] = {};
-
-  const hook = comp.hooks[idx];
+  const [, , hook] = initHook('useCallback');
   if (!depsEqual(hook.deps, deps)) {
     hook.callback = callback;
-    hook.deps = deps; // Store reference directly
+    hook.deps = deps;
   }
-
   return hook.callback;
 };
 
 // Transition hook for concurrent updates
 const useTransition = () => {
-  if (!currentComponent) throw new Error('useTransition: outside component');
-
-  const comp = components.get(currentComponent);
-  const idx = hookIndex++;
-
-  if (!comp.hooks) comp.hooks = [];
-  if (!comp.hooks[idx]) comp.hooks[idx] = { isPending: false };
-
-  const hook = comp.hooks[idx];
+  const [, , hook] = initHook('useTransition');
+  if (hook.isPending === undefined) hook.isPending = false;
 
   const startTransition = (callback) => {
     const transition = {
@@ -171,16 +137,13 @@ const useTransition = () => {
 
     currentTransition = transition;
     pendingTransitions.add(transition);
-
     hook.isPending = true;
 
     try {
       callback();
     } finally {
       pendingTransitions.delete(transition);
-      if (pendingTransitions.size === 0) {
-        currentTransition = null;
-      }
+      if (pendingTransitions.size === 0) currentTransition = null;
       hook.isPending = false;
     }
   };
@@ -190,42 +153,18 @@ const useTransition = () => {
 
 // Deferred value hook for concurrent updates
 const useDeferredValue = (value) => {
-  if (!currentComponent) throw new Error('useDeferredValue: outside component');
-
-  const comp = components.get(currentComponent);
-  const idx = hookIndex++;
-
-  if (!comp.hooks) comp.hooks = [];
-  if (!comp.hooks[idx]) comp.hooks[idx] = {};
-
-  const hook = comp.hooks[idx];
-
-  // Simple implementation - just return value (could be enhanced later)
+  const [, , hook] = initHook('useDeferredValue');
   if (hook.deferredValue !== value) {
     hook.deferredValue = value;
     scheduleRender(currentComponent);
   }
-
   return hook.deferredValue;
 };
 
 // Resource hook for async data fetching
 const useResource = (resourceFactory) => {
-  if (!currentComponent) throw new Error('useResource: outside component');
-
-  const comp = components.get(currentComponent);
-  const idx = hookIndex++;
-
-  if (!comp.hooks) comp.hooks = [];
-  if (!comp.hooks[idx]) comp.hooks[idx] = {};
-
-  const hook = comp.hooks[idx];
-
-  // Simple implementation - just call factory (Suspense handles the promise)
-  if (!hook.result) {
-    hook.result = resourceFactory();
-  }
-
+  const [, , hook] = initHook('useResource');
+  if (!hook.result) hook.result = resourceFactory();
   return hook.result;
 };
 
@@ -306,8 +245,8 @@ const diff = (oldVNode, newVNode, container, index = 0) => {
   updateProps(node, oldVNode.props, newVNode.props);
 
   // Diff children with key-based reconciliation
-  const oldChildren = oldVNode.props.children || [];
-  const newChildren = newVNode.props.children || [];
+  const oldChildren = oldVNode.props[CHILDREN] || [];
+  const newChildren = newVNode.props[CHILDREN] || [];
 
   // Group children by key for efficient reconciliation
   const oldKeyed = new Map();
@@ -398,7 +337,7 @@ const createDOMElement = (vnode) => {
   const element = document.createElement(vnode.type);
   updateProps(element, {}, vnode.props);
   
-  (vnode.props.children || []).forEach(child => {
+  (vnode.props[CHILDREN] || []).forEach(child => {
     if (child != null) element.appendChild(createDOMElement(child));
   });
   
@@ -469,7 +408,7 @@ const updateProps = (element, oldProps = {}, newProps = {}) => {
   // Remove old props (only if not in new props)
   for (let i = 0; i < oldKeys.length; i++) {
     const key = oldKeys[i];
-    if (key === 'children' || key in newProps) continue;
+    if (key === CHILDREN || key in newProps) continue;
 
     if (key.startsWith('on')) {
       element.removeEventListener(key.substring(2).toLowerCase(), oldProps[key]);
@@ -483,7 +422,7 @@ const updateProps = (element, oldProps = {}, newProps = {}) => {
   // Set new props (only if different from old)
   for (let i = 0; i < newKeys.length; i++) {
     const key = newKeys[i];
-    if (key === 'children') continue;
+    if (key === CHILDREN) continue;
 
     const oldValue = oldProps[key];
     const newValue = newProps[key];

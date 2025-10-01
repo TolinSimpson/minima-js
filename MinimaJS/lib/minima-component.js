@@ -4,15 +4,20 @@
 
 import { createElement, useState, useEffect } from './minima-core.js';
 
+// Cached constants
+const ANON = 'AnonymousComponent';
+const REQUIRED_WARN = (name, key) => `Component ${name}: Required prop '${key}' missing`;
+const NO_RENDER_WARN = (name) => `Component ${name}: No render function provided`;
+
 // Define a component with enhanced features
 const defineComponent = (options) => {
   const {
-    name = 'AnonymousComponent',
+    name = ANON,
     props: propTypes = {},
     setup,
     render: renderFn,
     beforeMount,
-    mounted,
+    mounted: onMounted,
     beforeUpdate,
     updated,
     beforeUnmount,
@@ -24,41 +29,33 @@ const defineComponent = (options) => {
   return function Component(props = {}) {
     // Validate props
     Object.keys(propTypes).forEach(key => {
-      if (propTypes[key].required && !(key in props)) {
-        console.warn(`Component ${name}: Required prop '${key}' missing`);
-      }
+      if (propTypes[key].required && !(key in props)) console.warn(REQUIRED_WARN(name, key));
     });
 
     // Component instance state
-    const [mounted, setMounted] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
     const [updateCount, setUpdateCount] = useState(0);
 
     // Setup function - runs once per component instance
     const setupContext = setup ? setup(props) : {};
 
     // Computed properties with caching
-    const computedCache = new Map();
+    const cache = new Map();
     const computedProps = {};
 
-    for (const key in computed) {
+    Object.keys(computed).forEach(key => {
       Object.defineProperty(computedProps, key, {
-        get() {
-          if (!computedCache.has(key)) {
-            computedCache.set(key, computed[key].call(setupContext));
-          }
-          return computedCache.get(key);
+        get: () => {
+          if (!cache.has(key)) cache.set(key, computed[key].call(setupContext));
+          return cache.get(key);
         },
         enumerable: true
       });
-    }
+    });
 
-    // Invalidate computed cache on updates
-    const invalidateComputed = () => {
-      computedCache.clear();
-      setUpdateCount(prev => prev + 1);
-    };
+    const invalidateComputed = () => (cache.clear(), setUpdateCount(prev => prev + 1));
 
-    for (const key in watch) {
+    Object.keys(watch).forEach(key => {
       let oldValue = setupContext[key];
       useEffect(() => {
         const newValue = setupContext[key];
@@ -67,7 +64,7 @@ const defineComponent = (options) => {
           oldValue = newValue;
         }
       }, [setupContext[key]]);
-    }
+    });
 
     // Lifecycle: beforeMount
     useEffect(() => {
@@ -80,20 +77,17 @@ const defineComponent = (options) => {
 
     // Lifecycle: mounted
     useEffect(() => {
-      if (!mounted) {
-        setMounted(true);
-        if (mounted) mounted.call(setupContext);
+      if (!isMounted) {
+        setIsMounted(true);
+        if (onMounted) onMounted.call(setupContext);
       }
-    }, [mounted]);
+    }, [isMounted]);
 
     // Lifecycle: beforeUpdate/updated
     useEffect(() => {
-      if (mounted && updateCount > 0) {
+      if (isMounted && updateCount > 0) {
         if (beforeUpdate) beforeUpdate.call(setupContext);
-        // Schedule updated callback after render
-        setTimeout(() => {
-          if (updated) updated.call(setupContext);
-        }, 0);
+        if (updated) setTimeout(() => updated.call(setupContext), 0);
       }
     }, [updateCount]);
 
@@ -113,21 +107,15 @@ const defineComponent = (options) => {
     };
 
     // Render component
-    if (renderFn) {
-      return renderFn.call(renderContext, props, renderContext);
-    } else {
-      console.warn(`Component ${name}: No render function provided`);
-      return createElement('div', { 'data-error': `No render function: ${name}` });
-    }
+    if (renderFn) return renderFn.call(renderContext, props, renderContext);
+    console.warn(NO_RENDER_WARN(name));
+    return createElement('div', { 'data-error': `No render function: ${name}` });
   };
 };
 
 // Higher-order component wrapper
-const withProps = (Component, additionalProps) => {
-  return function WrappedComponent(props) {
-    return createElement(Component, { ...additionalProps, ...props });
-  };
-};
+const withProps = (Component, additionalProps) => 
+  (props) => createElement(Component, { ...additionalProps, ...props });
 
 // Component composition helper
 const compose = (...components) => {
@@ -141,20 +129,15 @@ const Fragment = ({ children }) => children;
 
 // Memo component for performance optimization
 const memo = (Component, areEqual) => {
-  let lastProps = {};
-  let lastResult = null;
-
-  return function MemoizedComponent(props) {
-    const shouldUpdate = areEqual ?
-      !areEqual(lastProps, props) :
+  let lastProps = {}, lastResult = null;
+  return (props) => {
+    const shouldUpdate = areEqual ? !areEqual(lastProps, props) :
       Object.keys(props).some(key => props[key] !== lastProps[key]) ||
       Object.keys(lastProps).some(key => !(key in props));
-
     if (shouldUpdate || !lastResult) {
       lastResult = createElement(Component, props);
-      lastProps = props; // Use reference instead of spread for better performance
+      lastProps = props;
     }
-
     return lastResult;
   };
 };

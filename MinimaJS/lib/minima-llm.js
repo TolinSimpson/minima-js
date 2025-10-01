@@ -19,6 +19,10 @@ import {
   fade, slide, route, link, context, debug, log
 } from './minima-api.js';
 
+// Cached constants
+const CLS = 'className';
+const cls = (name) => ({ [CLS]: name });
+
 // =============================================================================
 // 1. TEMPLATE BUILDERS - Common UI patterns in one-liners
 // =============================================================================
@@ -27,13 +31,14 @@ const quickForm = (config) => {
   const [values, updateValue, resetForm] = formState(config.initialValues || {});
   
   const fields = config.fields.map(field => {
-    const fieldName = typeof field === 'string' ? field : field.name;
-    const fieldType = typeof field === 'string' ? 'text' : field.type || 'text';
-    const fieldLabel = typeof field === 'string' ? field : field.label || fieldName;
-    
-    return div({ className: 'form-field' }, [
+    const isStr = typeof field === 'string';
+    const fieldName = isStr ? field : field.name;
+    const fieldType = isStr ? 'text' : field.type || 'text';
+    const fieldLabel = isStr ? field : field.label || fieldName;
+
+    return div(cls('form-field'), [
       p(fieldLabel + ':'),
-      input({ 
+      input({
         type: fieldType,
         value: values[fieldName] || '',
         onChange: updateValue(fieldName),
@@ -49,42 +54,26 @@ const quickForm = (config) => {
     })
   }, [
     ...fields,
-    div({ className: 'form-actions' }, [
+    div(cls('form-actions'), [
       button('Submit'),
       when(config.showReset, button({ onClick: resetForm }, 'Reset'))
     ])
   ]);
 };
 
-const quickList = (items, renderItem, options = {}) => {
-  const Container = options.ordered ? 'ol' : 'ul';
-  return h(Container, { className: options.className }, 
-    items.map((item, index) => 
-      li({ key: item.id || index }, renderItem(item, index))
-    )
+const quickList = (items, renderItem, options = {}) => 
+  h(options.ordered ? 'ol' : 'ul', cls(options[CLS]), 
+    items.map((item, index) => li({ key: item.id || index }, renderItem(item, index)))
   );
-};
 
 const quickModal = (isOpen, content, options = {}) => {
   const [show, setShow] = useState(isOpen);
-  
   useEffect(() => setShow(isOpen), [isOpen]);
   
   return when(show, 
-    div({ 
-      className: 'modal-overlay',
-      onClick: () => options.onClose && options.onClose()
-    }, [
-      div({ 
-        className: 'modal-content',
-        onClick: e => e.stopPropagation()
-      }, [
-        when(options.showClose, 
-          button({ 
-            className: 'modal-close',
-            onClick: () => options.onClose && options.onClose()
-          }, '×')
-        ),
+    div({ ...cls('modal-overlay'), onClick: () => options.onClose?.() }, [
+      div({ ...cls('modal-content'), onClick: e => e.stopPropagation() }, [
+        when(options.showClose, button({ ...cls('modal-close'), onClick: () => options.onClose?.() }, '×')),
         content
       ])
     ])
@@ -92,32 +81,21 @@ const quickModal = (isOpen, content, options = {}) => {
 };
 
 const quickCard = (title, content, actions = []) => 
-  div({ className: 'card' }, [
-    when(title, div({ className: 'card-header' }, h3(title))),
-    div({ className: 'card-body' }, content),
-    when(actions.length, 
-      div({ className: 'card-actions' }, actions)
-    )
+  div(cls('card'), [
+    when(title, div(cls('card-header'), h3(title))),
+    div(cls('card-body'), content),
+    when(actions.length, div(cls('card-actions'), actions))
   ]);
 
-const quickTable = (data, columns) => {
-  const headers = columns.map(col => 
-    h('th', col.header || col.key)
-  );
-  
-  const rows = data.map((row, index) => 
-    h('tr', { key: row.id || index }, 
-      columns.map(col => 
-        h('td', col.render ? col.render(row[col.key], row) : row[col.key])
+const quickTable = (data, columns) => 
+  h('table', cls('data-table'), [
+    h('thead', h('tr', columns.map(col => h('th', col.header || col.key)))),
+    h('tbody', data.map((row, index) => 
+      h('tr', { key: row.id || index }, 
+        columns.map(col => h('td', col.render ? col.render(row[col.key], row) : row[col.key]))
       )
-    )
-  );
-  
-  return h('table', { className: 'data-table' }, [
-    h('thead', h('tr', headers)),
-    h('tbody', rows)
+    ))
   ]);
-};
 
 // =============================================================================
 // 2. CHAIN SYNTAX - Fluent API for component building
@@ -180,15 +158,8 @@ class ElementBuilder {
 }
 
 class NullBuilder extends ElementBuilder {
-  constructor() {
-    super(null);
-  }
-  
-  build() {
-    return null;
-  }
-  
-  // Chain methods return this for fluent API
+  constructor() { super(null); }
+  build() { return null; }
   class() { return this; }
   text() { return this; }
   child() { return this; }
@@ -202,15 +173,9 @@ class NullBuilder extends ElementBuilder {
 
 // Element builder factories
 const $ = (tag) => new ElementBuilder(tag);
-const $div = () => new ElementBuilder('div');
-const $span = () => new ElementBuilder('span');
-const $p = () => new ElementBuilder('p');
-const $button = () => new ElementBuilder('button');
-const $input = () => new ElementBuilder('input');
-const $form = () => new ElementBuilder('form');
-const $h1 = () => new ElementBuilder('h1');
-const $h2 = () => new ElementBuilder('h2');
-const $h3 = () => new ElementBuilder('h3');
+const $el = (t) => () => new ElementBuilder(t);
+const $div = $el('div'), $span = $el('span'), $p = $el('p'), $button = $el('button');
+const $input = $el('input'), $form = $el('form'), $h1 = $el('h1'), $h2 = $el('h2'), $h3 = $el('h3');
 
 // =============================================================================
 // 3. PATTERN MACROS - Complete features in minimal code
@@ -229,9 +194,9 @@ const createApp = {
       }
     };
 
-    return div({ className: 'todo-app' }, [
+    return div(cls('todo-app'), [
       h1('Todo App'),
-      div({ className: 'todo-input' }, [
+      div(cls('todo-input'), [
         input({
           value: input,
           onChange: e => setInput(e.target.value),
@@ -241,16 +206,11 @@ const createApp = {
         button({ onClick: addTodo }, 'Add')
       ]),
       quickList(todos, todo =>
-        div({
-          className: todo.done ? 'todo-item done' : 'todo-item',
-          key: todo.id
-        }, [
+        div({ ...cls(todo.done ? 'todo-item done' : 'todo-item'), key: todo.id }, [
           input({
             type: 'checkbox',
             checked: todo.done,
-            onChange: () => setTodos(todos.map(t =>
-              t.id === todo.id ? { ...t, done: !t.done } : t
-            ))
+            onChange: () => setTodos(todos.map(t => t.id === todo.id ? { ...t, done: !t.done } : t))
           }),
           span(todo.text),
           button({ onClick: () => setTodos(todos.filter(t => t.id !== todo.id)) }, '×')
@@ -262,13 +222,12 @@ const createApp = {
   // Complete counter app
   counter: (config = {}) => {
     const [count, setCount] = useState(config.initialValue || 0);
-    const step = config.step || 1;
-    const resetValue = config.initialValue || 0;
+    const step = config.step || 1, resetValue = config.initialValue || 0;
 
-    return div({ className: 'counter-app' }, [
+    return div(cls('counter-app'), [
       h1(config.title || 'Counter'),
-      div({ className: 'counter-display' }, count),
-      div({ className: 'counter-controls' }, [
+      div(cls('counter-display'), count),
+      div(cls('counter-controls'), [
         button({ onClick: () => setCount(count - step) }, '-'),
         button({ onClick: () => setCount(resetValue) }, 'Reset'),
         button({ onClick: () => setCount(count + step) }, '+')
@@ -279,15 +238,11 @@ const createApp = {
   // Complete dashboard layout
   dashboard: (config) => {
     const { header, sidebar, widgets } = config;
-    return div({ className: 'dashboard' }, [
-      when(header, div({ className: 'dashboard-header' }, header)),
-      div({ className: 'dashboard-content' }, [
-        when(sidebar, div({ className: 'dashboard-sidebar' }, sidebar)),
-        div({ className: 'dashboard-main' },
-          widgets?.map((widget, index) =>
-            div({ className: 'dashboard-widget', key: index }, widget)
-          )
-        )
+    return div(cls('dashboard'), [
+      when(header, div(cls('dashboard-header'), header)),
+      div(cls('dashboard-content'), [
+        when(sidebar, div(cls('dashboard-sidebar'), sidebar)),
+        div(cls('dashboard-main'), widgets?.map((widget, index) => div({ ...cls('dashboard-widget'), key: index }, widget)))
       ])
     ]);
   }
@@ -299,9 +254,7 @@ const createApp = {
 
 const safeRender = (component, target) => {
   try {
-    if (typeof target === 'string') {
-      target = document.getElementById(target) || document.querySelector(target);
-    }
+    if (typeof target === 'string') target = document.getElementById(target) || document.querySelector(target);
     if (!target) {
       console.warn('safeRender: Target element not found, creating div');
       target = document.createElement('div');
@@ -310,7 +263,7 @@ const safeRender = (component, target) => {
     return render(component, target);
   } catch (e) {
     console.error('Render error:', e);
-    return render(div({ className: 'error-boundary' }, [
+    return render(div(cls('error-boundary'), [
       h2('Render Error'),
       p(`Error: ${e.message}`),
       button({ onClick: () => location.reload() }, 'Reload Page')
@@ -318,18 +271,13 @@ const safeRender = (component, target) => {
   }
 };
 
-const safeComponent = (componentFn) => {
-  return (...args) => {
-    try {
-      return componentFn(...args);
-    } catch (e) {
-      console.error('Component error:', e);
-      return div({ className: 'component-error' }, [
-        h3('Component Error'),
-        p(`${e.message}`)
-      ]);
-    }
-  };
+const safeComponent = (componentFn) => (...args) => {
+  try {
+    return componentFn(...args);
+  } catch (e) {
+    console.error('Component error:', e);
+    return div(cls('component-error'), [h3('Component Error'), p(e.message)]);
+  }
 };
 
 const tryRender = (components) => {
@@ -356,16 +304,12 @@ class PageBuilder {
   }
   
   header(builder) {
-    this.headerContent = typeof builder === 'function' 
-      ? builder(new NavBuilder()) 
-      : builder;
+    this.headerContent = typeof builder === 'function' ? builder(new NavBuilder()) : builder;
     return this;
   }
   
   main(builder) {
-    this.mainContent = typeof builder === 'function'
-      ? builder(new SectionBuilder())
-      : builder;
+    this.mainContent = typeof builder === 'function' ? builder(new SectionBuilder()) : builder;
     return this;
   }
   
@@ -375,26 +319,18 @@ class PageBuilder {
   }
   
   footer(builder) {
-    this.footerContent = typeof builder === 'function'
-      ? builder(new FooterBuilder())
-      : builder;
+    this.footerContent = typeof builder === 'function' ? builder(new FooterBuilder()) : builder;
     return this;
   }
   
   build() {
-    return div({ className: 'page-layout' }, [
-      when(this.headerContent, 
-        h('header', { className: 'page-header' }, this.headerContent)
-      ),
-      div({ className: 'page-body' }, [
-        when(this.sidebarContent,
-          h('aside', { className: 'page-sidebar' }, this.sidebarContent)
-        ),
-        h('main', { className: 'page-main' }, this.mainContent)
+    return div(cls('page-layout'), [
+      when(this.headerContent, h('header', cls('page-header'), this.headerContent)),
+      div(cls('page-body'), [
+        when(this.sidebarContent, h('aside', cls('page-sidebar'), this.sidebarContent)),
+        h('main', cls('page-main'), this.mainContent)
       ]),
-      when(this.footerContent,
-        h('footer', { className: 'page-footer' }, this.footerContent)
-      )
+      when(this.footerContent, h('footer', cls('page-footer'), this.footerContent))
     ]);
   }
 }
@@ -416,40 +352,23 @@ class NavBuilder {
   }
   
   build() {
-    return h('nav', { className: 'navbar' }, [
-      when(this.brandText, 
-        div({ className: 'navbar-brand' }, this.brandText)
-      ),
-      div({ className: 'navbar-links' },
-        this.navLinks.map(link => 
-          a({ href: typeof link === 'string' ? `#${link}` : link.href }, 
-            typeof link === 'string' ? link : link.text
-          )
-        )
-      )
+    return h('nav', cls('navbar'), [
+      when(this.brandText, div(cls('navbar-brand'), this.brandText)),
+      div(cls('navbar-links'), this.navLinks.map(link => 
+        a({ href: typeof link === 'string' ? `#${link}` : link.href }, typeof link === 'string' ? link : link.text)
+      ))
     ]);
   }
 }
 
 class SectionBuilder {
-  constructor() {
-    this.sections = [];
-  }
-  
-  section(content) {
-    this.sections.push(content);
-    return this;
-  }
-  
-  build() {
-    return div({ className: 'main-content' }, this.sections);
-  }
+  constructor() { this.sections = []; }
+  section(content) { this.sections.push(content); return this; }
+  build() { return div(cls('main-content'), this.sections); }
 }
 
 class FooterBuilder {
-  constructor() {
-    this.content = [];
-  }
+  constructor() { this.content = []; }
   
   text(text) {
     this.content.push(p(text));
@@ -457,19 +376,11 @@ class FooterBuilder {
   }
   
   links(links) {
-    this.content.push(
-      div({ className: 'footer-links' },
-        links.map(link => 
-          a({ href: link.href }, link.text)
-        )
-      )
-    );
+    this.content.push(div(cls('footer-links'), links.map(link => a({ href: link.href }, link.text))));
     return this;
   }
   
-  build() {
-    return div({ className: 'footer-content' }, this.content);
-  }
+  build() { return div(cls('footer-content'), this.content); }
 }
 
 const page = () => new PageBuilder();

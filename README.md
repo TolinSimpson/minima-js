@@ -1,10 +1,13 @@
 # MinimaJS
 
-**Ultra-lightweight React alternative with the shortest API syntax, zero dependencies, and LLM-optimized development experience.**
+**Ultra-lightweight React alternative with short API syntax, zero dependencies, and LLM-optimized development experience.**
 
 [![GitHub Package](https://img.shields.io/badge/GitHub-Package-blue.svg)](https://github.com/tolinsimpson/minima-js/packages)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-green.svg)](https://github.com/tolinsimpson/minima-js)
+
+## Notice: 
+I vibe coded this. lol
 
 ## Why MinimaJS?
 
@@ -21,14 +24,35 @@
 npm install @tolinsimpson/minimajs
 ```
 
-### Hello World
+### Combined File (All Features)
+
+For the complete experience with all features in a single file:
 
 ```javascript
-import { div, h1, button, useState, app } from '@tolinsimpson/minimajs';
+import { div, h1, button, useState, app, quickForm, html } from '@tolinsimpson/minimajs/full';
 
 const Counter = () => {
   const [count, setCount] = useState(0);
-  
+
+  return div([
+    h1(`Count: ${count}`),
+    button({ onClick: () => setCount(count + 1) }, 'Click me!')
+  ]);
+};
+
+app(Counter, 'app'); // Mounts to #app
+```
+
+### Modular Imports (Tree-Shakeable)
+
+For optimal bundle size with only needed features:
+
+```javascript
+import { div, h1, button, useState, app } from '@tolinsimpson/minimajs/full';
+
+const Counter = () => {
+  const [count, setCount] = useState(0);
+
   return div([
     h1(`Count: ${count}`),
     button({ onClick: () => setCount(count + 1) }, 'Click me!')
@@ -41,7 +65,7 @@ app(Counter, 'app'); // Mounts to #app
 ### Template Syntax (HTML-like)
 
 ```javascript
-import { html, useState, app } from '@tolinsimpson/minimajs';
+import { html, useState, app } from '@tolinsimpson/minimajs/full';
 
 const TodoApp = () => {
   const [todos, setTodos] = useState([]);
@@ -68,7 +92,7 @@ const TodoApp = () => {
 ### Components & Hooks
 
 ```javascript
-import { useState, useEffect, div, p } from '@tolinsimpson/minimajs';
+import { useState, useEffect, div, p } from '@tolinsimpson/minimajs/full';
 
 const UserProfile = ({ userId }) => {
   const [user, setUser] = useState(null);
@@ -94,7 +118,7 @@ const UserProfile = ({ userId }) => {
 ### State Management
 
 ```javascript
-import { useState, toggle, counter, inputState } from '@tolinsimpson/minimajs';
+import { useState, toggle, counter, inputState } from '@tolinsimpson/minimajs/full';
 
 const MyComponent = () => {
   // Basic state
@@ -124,7 +148,7 @@ Perfect for AI code generation with predictable patterns:
 ### Template Builders
 
 ```javascript
-import { quickForm, quickTable, quickModal } from '@tolinsimpson/minimajs';
+import { quickForm, quickTable, quickModal } from '@tolinsimpson/minimajs/full';
 
 // Complete form in one line
 const form = quickForm({
@@ -145,8 +169,8 @@ const modal = quickModal(isOpen, content, { onClose: () => setOpen(false) });
 
 ### Chain Syntax
 
-```javascript  
-import { $div, $button, $input } from '@tolinsimpson/minimajs';
+```javascript
+import { $div, $button, $input } from '@tolinsimpson/minimajs/full';
 
 // Fluent chain building - perfect for LLMs
 const card = $div()
@@ -160,7 +184,7 @@ const card = $div()
 ### Pattern Macros
 
 ```javascript
-import { llmCreateApp } from '@tolinsimpson/minimajs';
+import { llmCreateApp } from '@tolinsimpson/minimajs/full';
 
 // Complete todo app in one call
 const todoApp = llmCreateApp.todo({
@@ -178,7 +202,7 @@ const counter = llmCreateApp.counter({
 ## Server-Side Rendering
 
 ```javascript
-import { renderToString, hydrate } from '@tolinsimpson/minimajs';
+import { renderToString, hydrate } from '@tolinsimpson/minimajs/full';
 
 // Server
 const html = renderToString(App, { props });
@@ -188,28 +212,64 @@ res.send(`<!DOCTYPE html><html><body><div id="app">${html}</div></body></html>`)
 hydrate(App, document.getElementById('app'), { props });
 ```
 
-## Modular Imports
+## Combined File (`minima-full.js`)
+
+MinimaJS provides a complete combined file that includes **all features** in a single import for maximum convenience and rapid prototyping.
+
+### Benefits of the Combined File
+
+✅ **Everything Included** - All features (Core, API, LLM, SSR, DevTools) in one file
+✅ **Rapid Prototyping** - Perfect for quick development and testing
+✅ **No Import Decisions** - Single import gives you everything
+✅ **Self-Contained** - No external dependencies or module resolution issues
+✅ **CDN-Friendly** - Easy to use directly from CDN
+
+### When to Use the Combined File
+
+- **Development & Prototyping** - When you need all features quickly
+- **Learning & Examples** - Perfect for tutorials and documentation
+- **Simple Applications** - When bundle size isn't a primary concern
+- **CDN Usage** - When you want to avoid build tools entirely
+
+### File Information
+
+```javascript
+// The combined file includes:
+✅ Core Virtual DOM & Hooks (13KB minified)
+✅ Template Engine with XSS Protection
+✅ Advanced Component System
+✅ Server-Side Rendering
+✅ LLM-Optimized APIs (quickForm, $ builders, etc.)
+✅ Developer Tools
+✅ State Management Helpers
+✅ Animation Utilities
+
+// Total: 54KB unminified, 37KB when minified
+```
+
+### Modular Imports (Tree-Shakeable)
+For optimal bundle size with only needed features:
 
 ```javascript
 // Full framework
-import { div, useState } from '@tolinsimpson/minimajs';
+import { div, useState } from '@tolinsimpson/minimajs/full';
 
-// Core only (9KB)
+// Core functionality only
 import { createElement, useState, render } from '@tolinsimpson/minimajs/core';
 
-// Templates only (3KB)
+// Template engine only
 import { html } from '@tolinsimpson/minimajs/template';
 
-// Components only (2KB)
+// Component system only
 import { defineComponent } from '@tolinsimpson/minimajs/component';
 
-// SSR only (4KB)
+// SSR features only
 import { renderToString } from '@tolinsimpson/minimajs/ssr';
 
-// LLM helpers only (9KB)
+// LLM helpers only
 import { quickForm, $div } from '@tolinsimpson/minimajs/llm';
 
-// Dev tools only (optional, 5KB)
+// Dev tools only (optional)
 import { useDevTools, inspectComponentTree } from '@tolinsimpson/minimajs/devtools';
 ```
 
@@ -578,7 +638,7 @@ const card = $div()
 Boolean state helper.
 
 ```javascript
-import { toggle } from '@tolinsimpson/minimajs';
+import { toggle } from '@tolinsimpson/minimajs/full';
 
 const [isOpen, toggleOpen] = toggle(false);
 // toggleOpen() flips the boolean
@@ -589,7 +649,7 @@ const [isOpen, toggleOpen] = toggle(false);
 Counter state helper.
 
 ```javascript
-import { counter } from '@tolinsimpson/minimajs';
+import { counter } from '@tolinsimpson/minimajs/full';
 
 const [count, increment, decrement, setCount] = counter(0);
 ```
@@ -598,7 +658,7 @@ const [count, increment, decrement, setCount] = counter(0);
 Input state helper with onChange handler.
 
 ```javascript
-import { inputState } from '@tolinsimpson/minimajs';
+import { inputState } from '@tolinsimpson/minimajs/full';
 
 const [value, setValue, onChange] = inputState('');
 
@@ -613,7 +673,7 @@ html`<input value="${value}" oninput="${onChange}">`;
 MinimaJS includes built-in XSS protection:
 
 ```javascript
-import { html, sanitizeText } from '@tolinsimpson/minimajs';
+import { html, sanitizeText } from '@tolinsimpson/minimajs/full';
 
 // Safe by default - auto-sanitized
 const userContent = html`<div>${userInput}</div>`;
@@ -627,7 +687,7 @@ const clean = sanitizeText(dangerousString);
 ## TypeScript Support
 
 ```typescript
-import { useState, div, button } from '@tolinsimpson/minimajs';
+import { useState, div, button } from '@tolinsimpson/minimajs/full';
 
 interface User {
   id: number;
@@ -648,7 +708,7 @@ const UserCard = ({ user }: { user: User }) => {
 
 ```javascript
 // examples/minima.test.js
-import { createElement, useState, render } from '@tolinsimpson/minimajs';
+import { createElement, useState, render } from '@tolinsimpson/minimajs/full';
 
 const TestComponent = () => {
   const [count, setCount] = useState(0);
@@ -684,15 +744,15 @@ render(TestComponent(), document.body);
 
 ### Bundle Size Comparison
 
-| Framework | Core | Full | Minified + Gzipped | Notes |
-|-----------|------|------|-------------------|-------|
-| **MinimaJS** | 9.6KB | 38.7KB | 38.7KB (0 deps) | Full framework + SSR + Advanced features |
-| React + ReactDOM | 42KB | 42KB | 42KB (+deps) | Requires ecosystem |
-| Vue 3 | 34KB | 34KB | 34KB (+deps) | Requires ecosystem |
+| Framework | Core | Full | Minified | Notes |
+|-----------|------|------|----------|-------------------|-------|
+| **MinimaJS** | 13KB | 53KB | 9KB core, 37KB full | All features in single file |
+| React + ReactDOM | 130KB | 130KB | 42KB (+deps) | Requires ecosystem |
+| Vue 3 | 120KB | 120KB | 34KB (+deps) | Requires ecosystem |
 | Svelte | 1KB | 1KB | 1KB (compiled) | Compile-time only |
-| Preact | 10KB | 10KB | 10KB (+deps) | React-compatible only |
+| Preact | 10KB | 10KB | 3KB (+deps) | React-compatible only |
 
-*MinimaJS includes React 18+ features (useMemo, useCallback, Suspense, concurrent rendering) while being 8% smaller than React*
+*MinimaJS includes React 18+ features while being smaller than React. The combined file provides all features in a single import.*
 
 ### Production Readiness
 
@@ -701,17 +761,17 @@ MinimaJS is **production-ready** for modern web applications with these consider
 **✅ Production Strengths:**
 - **Enterprise-grade security** (comprehensive XSS protection with 50+ blocked event handlers)
 - **Zero dependencies** (no supply chain vulnerabilities)
-- **Modern ES modules support** with tree-shaking
+- **Modern ES modules support** with tree-shaking and combined file option
 - **Efficient Virtual DOM** with key-based reconciliation and optimized algorithms
 - **Built-in SSR and hydration** with streaming support
 - **Advanced React 18+ features** (useMemo, useCallback, Suspense, concurrent rendering)
-- **Performance optimizations** (33% bundle reduction through algorithmic improvements)
 
 **🏆 Competitive Advantages:**
-- **8% smaller than React** while including React 18+ features
+- **Smaller than React** while including React 18+ features
 - **Built-in enterprise security** (comprehensive XSS protection)
 - **Zero-configuration setup** vs React's complex tooling requirements
 - **Advanced developer experience** (template literals, LLM-optimized APIs)
+- **Flexible deployment options** (modular for optimal bundles, combined for simplicity)
 - **Future-proof architecture** (ES modules, tree-shakeable, modern patterns)
 
 ### Developer Experience
@@ -732,7 +792,7 @@ MinimaJS is **production-ready** for modern web applications with these consider
 
 **MinimaJS**
 ```javascript
-import { div, h1, button, useState, app } from '@tolinsimpson/minimajs';
+import { div, h1, button, useState, app } from '@tolinsimpson/minimajs/full';
 
 const Counter = () => {
   const [count, setCount] = useState(0);
@@ -787,7 +847,7 @@ const count = ref(0)
 
 **MinimaJS**
 ```javascript
-import { html, useState } from '@tolinsimpson/minimajs';
+import { html, useState } from '@tolinsimpson/minimajs/full';
 
 const TodoApp = () => {
   const [todos, setTodos] = useState([]);
@@ -843,7 +903,7 @@ const TodoApp = () => {
 
 **MinimaJS**
 ```javascript
-import { useState, useEffect, toggle, counter } from '@tolinsimpson/minimajs';
+import { useState, useEffect, toggle, counter } from '@tolinsimpson/minimajs/full';
 
 const UserProfile = ({ userId }) => {
   const [user, setUser] = useState(null);
@@ -917,12 +977,14 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Why Choose MinimaJS?
 
-- **Shortest syntax** - Write less, do more  
-- **Zero dependencies** - No supply chain risks  
-- **Modern features** - Hooks, SSR, TypeScript  
-- **LLM-optimized** - Perfect for AI development  
+- **Shortest syntax** - Write less, do more
+- **Zero dependencies** - No supply chain risks
+- **Modern features** - Hooks, SSR, TypeScript
+- **LLM-optimized** - Perfect for AI development
 - **Fast & small** - Tiny codebase, optimized code
 - **Security-first** - XSS protection built-in
+- **Flexible deployment** - Modular or combined file options
+- **Production-ready** - Enterprise-grade with advanced features
 
 ---
 

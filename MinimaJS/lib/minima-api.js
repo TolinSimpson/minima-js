@@ -15,19 +15,10 @@ import { defineComponent } from './minima-component.js';
 
 // Ultra-short element creators
 const h = createElement;
-const div = (...args) => h('div', ...args);
-const span = (...args) => h('span', ...args);
-const p = (...args) => h('p', ...args);
-const button = (...args) => h('button', ...args);
-const input = (...args) => h('input', ...args);
-const a = (...args) => h('a', ...args);
-const img = (...args) => h('img', ...args);
-const form = (...args) => h('form', ...args);
-const ul = (...args) => h('ul', ...args);
-const li = (...args) => h('li', ...args);
-const h1 = (...args) => h('h1', ...args);
-const h2 = (...args) => h('h2', ...args);
-const h3 = (...args) => h('h3', ...args);
+const tag = (t) => (...args) => h(t, ...args);
+const div = tag('div'), span = tag('span'), p = tag('p'), button = tag('button');
+const input = tag('input'), a = tag('a'), img = tag('img'), form = tag('form');
+const ul = tag('ul'), li = tag('li'), h1 = tag('h1'), h2 = tag('h2'), h3 = tag('h3');
 
 // Component creation shortcuts
 const component = defineComponent;
@@ -57,13 +48,8 @@ const memo = (Component) => {
 
 // Template shortcuts
 const t = html;
-const css = (strings, ...values) => {
-  let result = strings[0];
-  for (let i = 1; i < strings.length; i++) {
-    result += values[i - 1] + strings[i];
-  }
-  return result;
-};
+const css = (strings, ...values) => 
+  strings.reduce((result, str, i) => result + (values[i - 1] || '') + str);
 
 // Rendering shortcuts
 const render = (component, target) => {
@@ -75,15 +61,17 @@ const mount = render;
 const app = (component, target = 'app') => render(component, target);
 
 // Event shortcuts
-const click = (handler) => ({ onClick: handler });
-const submit = (handler) => ({ onSubmit: handler });
-const change = (handler) => ({ onChange: handler });
-const inputEvent = (handler) => ({ onInput: handler });
+const evt = (type, handler) => ({ [`on${type}`]: handler });
+const click = (handler) => evt('Click', handler);
+const submit = (handler) => evt('Submit', handler);
+const change = (handler) => evt('Change', handler);
+const inputEvent = (handler) => evt('Input', handler);
 
 // Style shortcuts  
-const style = (styles) => ({ style: styles });
-const className = (classes) => ({ className: classes });
-const id = (idValue) => ({ id: idValue });
+const prop = (k, v) => ({ [k]: v });
+const style = (styles) => prop('style', styles);
+const className = (classes) => prop('className', classes);
+const id = (idValue) => prop('id', idValue);
 
 // Conditional rendering
 const when = (condition, component) => condition ? component : null;
@@ -94,7 +82,7 @@ const each = (items, renderFn) => items.map((item, index) => renderFn(item, inde
 
 // Props spreading helpers
 const props = (...objects) => Object.assign({}, ...objects);
-const attr = (name, value) => ({ [name]: value });
+const attr = prop;
 
 // Lifecycle shortcuts for components
 const onMount = (fn) => useEffect(fn, []);
@@ -109,12 +97,7 @@ const toggle = (initialValue = false) => {
 
 const counter = (initialValue = 0) => {
   const [count, setCount] = useState(initialValue);
-  return [
-    count,
-    () => setCount(count + 1),
-    () => setCount(count - 1),
-    (value) => setCount(value)
-  ];
+  return [count, () => setCount(count + 1), () => setCount(count - 1), setCount];
 };
 
 const inputState = (initialValue = '') => {
@@ -125,28 +108,21 @@ const inputState = (initialValue = '') => {
 // Form helpers
 const formState = (initialValues = {}) => {
   const [values, setValues] = useState(initialValues);
-  const update = (field) => (e) => {
-    setValues({ ...values, [field]: e.target.value });
-  };
-  const reset = () => setValues(initialValues);
-  return [values, update, reset];
+  const update = (field) => (e) => setValues({ ...values, [field]: e.target.value });
+  return [values, update, () => setValues(initialValues)];
 };
 
 // Animation helpers
-const fade = (show, duration = 300) => ({
-  style: {
-    opacity: show ? 1 : 0,
-    transition: `opacity ${duration}ms ease`
-  }
-});
+const fade = (show, duration = 300) => style({
+  opacity: show ? 1 : 0,
+  transition: `opacity ${duration}ms ease`
+}).style;
 
-const slide = (show, duration = 300) => ({
-  style: {
-    maxHeight: show ? '1000px' : '0',
-    overflow: 'hidden',
-    transition: `max-height ${duration}ms ease`
-  }
-});
+const slide = (show, duration = 300) => style({
+  maxHeight: show ? '1000px' : '0',
+  overflow: 'hidden',
+  transition: `max-height ${duration}ms ease`
+}).style;
 
 // Router helpers
 const route = (path, component) => {
@@ -154,8 +130,8 @@ const route = (path, component) => {
   return currentPath === path ? component : null;
 };
 
-const link = (to, children, props = {}) => 
-  h('a', { ...props, href: `#${to}`, onClick: (e) => {
+const link = (to, children, linkProps = {}) => 
+  h('a', { ...linkProps, href: `#${to}`, onClick: (e) => {
     e.preventDefault();
     window.location.hash = to;
   }}, children);
@@ -176,29 +152,20 @@ const context = (initialValue) => {
   const use = () => {
     const [currentState, setState] = useState(value);
     useEffect(() => {
-      const updateState = (newValue) => setState(newValue);
-      listeners.add(updateState);
-      return () => listeners.delete(updateState);
+      listeners.add(setState);
+      return () => listeners.delete(setState);
     }, []);
     return currentState;
   };
 
-  // Enhanced context with multiple consumers support
-  const Consumer = ({ children }) => {
-    const contextValue = use();
-    if (typeof children === 'function') {
-      return children(contextValue);
-    }
-    return children;
-  };
+  const Consumer = ({ children }) => 
+    typeof children === 'function' ? children(use()) : children;
 
   return { Provider, Consumer, use };
 };
 
 // Create context with default export pattern
-const createContext = (defaultValue) => {
-  return context(defaultValue);
-};
+const createContext = context;
 
 // Error boundary component
 const ErrorBoundary = (fallback = null) => {
@@ -233,15 +200,8 @@ const ErrorBoundary = (fallback = null) => {
 };
 
 // Development helpers
-const debug = (component) => {
-  console.log('Component render:', component);
-  return component;
-};
-
-const log = (value, label = 'Debug') => {
-  console.log(`${label}:`, value);
-  return value;
-};
+const debug = (component) => (console.log('Component render:', component), component);
+const log = (value, label = 'Debug') => (console.log(`${label}:`, value), value);
 
 // Bundle everything for easy importing
 const api = {
