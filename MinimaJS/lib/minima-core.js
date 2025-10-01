@@ -229,7 +229,7 @@ const useResource = (resourceFactory) => {
   return hook.result;
 };
 
-// Suspense component (simplified)
+// Suspense component
 const Suspense = ({ children, fallback }) => {
   const prevSuspenseHandler = currentSuspenseHandler;
   currentSuspenseHandler = () => fallback;
@@ -246,7 +246,7 @@ const Suspense = ({ children, fallback }) => {
   }
 };
 
-// Simplified rendering queue (no complex priorities for smaller bundle)
+// Rendering queue
 const scheduleRender = (component) => {
   renderQueue.add(component);
   if (!isRendering) {

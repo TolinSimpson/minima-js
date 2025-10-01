@@ -2,15 +2,13 @@
 
 **Ultra-lightweight React alternative with the shortest API syntax, zero dependencies, and LLM-optimized development experience.**
 
-> **📦 Published to:** [GitHub Packages](https://github.com/tolinsimpson/minima-js/packages)
-
 [![GitHub Package](https://img.shields.io/badge/GitHub-Package-blue.svg)](https://github.com/tolinsimpson/minima-js/packages)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-green.svg)](https://github.com/tolinsimpson/minima-js)
 
 ## Why MinimaJS?
 
-- **Shortest API syntax** - Build UIs faster with ultra-concise code
+- **Short API syntax** - Build UIs faster with ultra-concise code
 - **Lightweight & modular** - Use only what you need
 - **Zero dependencies** - No supply chain vulnerabilities  
 - **LLM-optimized** - AI-friendly APIs for faster development
@@ -199,7 +197,7 @@ import { div, useState } from '@tolinsimpson/minimajs';
 // Core only (9KB)
 import { createElement, useState, render } from '@tolinsimpson/minimajs/core';
 
-// Templates only (3KB) 
+// Templates only (3KB)
 import { html } from '@tolinsimpson/minimajs/template';
 
 // Components only (2KB)
@@ -210,6 +208,9 @@ import { renderToString } from '@tolinsimpson/minimajs/ssr';
 
 // LLM helpers only (9KB)
 import { quickForm, $div } from '@tolinsimpson/minimajs/llm';
+
+// Dev tools only (optional, 5KB)
+import { useDevTools, inspectComponentTree } from '@tolinsimpson/minimajs/devtools';
 ```
 
 ## Module Features
@@ -257,6 +258,24 @@ MinimaJS is built as modular components that can be used independently:
 - **Pattern macros** for common UI patterns
 - **Code generation helpers** for LLM workflows
 - **Semantic component creation** with natural language
+
+### DevTools Module (`@tolinsimpson/minimajs/devtools`) - Optional
+- **Component inspection** (useDevTools hook for runtime debugging)
+- **Performance profiling** (render timing and memory analysis)
+- **Component tree visualization** (console-based debugging)
+- **Development utilities** (enable/disable dev mode)
+- **Browser extension ready** (extensible for GUI tools)
+
+#### Enabling DevTools
+
+```javascript
+// Enable dev tools globally
+import { enableDevTools } from '@tolinsimpson/minimajs/devtools';
+enableDevTools();
+
+// Or set in browser console
+window.__MINIMA_DEVTOOLS__ = true;
+```
 
 ## API Reference
 
@@ -647,21 +666,21 @@ render(TestComponent(), document.body);
 
 ### Feature Comparison
 
-| Feature | MinimaJS | React | Vue 3 | Svelte | Preact |
+| Feature | MinimaJS | React | Vue 3 | Preact | Svelte |
 |---------|----------|-------|-------|--------|--------|
-| **Virtual DOM** | ✅ | ✅ | ✅ | ❌ | ✅ |
-| **Hooks** | ✅ | ✅ | ✅ | ❌ | ✅ |
+| **Virtual DOM** | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **Hooks** | ✅ | ✅ | ✅ | ✅ | ❌ |
 | **SSR** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **TypeScript** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **useMemo/useCallback** | ✅ | ✅ | ✅ | ❌ | ✅ |
+| **useMemo/useCallback** | ✅ | ✅ | ✅ | ✅ | ❌ |
 | **Concurrent Features** | ✅ | ✅ | ✅ | ❌ | ❌ |
-| **Error Boundaries** | ✅ | ✅ | ✅ | ❌ | ✅ |
+| **Error Boundaries** | ✅ | ✅ | ✅ | ✅ | ❌ |
 | **Suspense** | ✅ | ✅ | ✅ | ❌ | ✅ |
 | **Zero Dependencies** | ✅ | ❌ | ❌ | ❌ | ❌ |
 | **Template Literals** | ✅ | ❌ | ❌ | ❌ | ❌ |
 | **Built-in XSS Protection** | ✅ | ❌ | ❌ | ❌ | ❌ |
 | **LLM-Optimized API** | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **Advanced DevTools** | ❌ | ✅ | ✅ | ✅ | ❌ |
+| **Advanced DevTools** | ✅ | ✅ | ✅ | ❌ | ✅ |
 
 ### Bundle Size Comparison
 
@@ -902,7 +921,6 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - **Zero dependencies** - No supply chain risks  
 - **Modern features** - Hooks, SSR, TypeScript  
 - **LLM-optimized** - Perfect for AI development  
-- **Production-ready** - Used in real applications  
 - **Fast & small** - Tiny codebase, optimized code
 - **Security-first** - XSS protection built-in
 

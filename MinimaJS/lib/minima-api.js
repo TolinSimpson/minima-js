@@ -6,6 +6,10 @@ import {
   createElement, useState, useEffect, useMemo, useCallback,
   useTransition, useDeferredValue, useResource, Suspense, render as coreRender
 } from './minima-core.js';
+import {
+  useDevTools, useProfiler, inspectComponentTree, analyzePerformance,
+  enableDevTools, disableDevTools
+} from './minima-devtools.js';
 import { html } from './minima-template.js';
 import { defineComponent } from './minima-component.js';
 
@@ -242,13 +246,13 @@ const log = (value, label = 'Debug') => {
 // Bundle everything for easy importing
 const api = {
   // Core (standard names)
-  createElement, useState, useEffect, useMemo, useCallback, useTransition, useDeferredValue, useResource, Suspense,
-  render: coreRender, html, defineComponent,
+  createElement, useState, useEffect, useMemo, useCallback, useTransition, useDeferredValue, useResource,
+  useDevTools, useProfiler, inspectComponentTree, analyzePerformance, Suspense, render: coreRender, html, defineComponent,
 
-  // Shortcuts (ultra-concise)
+  // Shortcuts
   h, div, span, p, button, input, a, img, form, ul, li, h1, h2, h3,
-  useState, useEffect, useMemo, useCallback, useTransition, useDeferredValue, useResource, Suspense,
-  component, fc, memo, t, css, render, mount, app,
+  useState, useEffect, useMemo, useCallback, useTransition, useDeferredValue, useResource,
+  useDevTools, useProfiler, inspectComponentTree, analyzePerformance, Suspense, component, fc, memo, t, css, render, mount, app,
 
   // Events & Props
   click, submit, change, input, style, className, id, props, attr,
@@ -281,8 +285,8 @@ const api = {
 // Export individual functions
 export {
   // Core
-  createElement, useState, useEffect, useMemo, useCallback, useTransition, useDeferredValue, useResource, Suspense,
-  render, html, defineComponent,
+  createElement, useState, useEffect, useMemo, useCallback, useTransition, useDeferredValue, useResource,
+  useDevTools, useProfiler, inspectComponentTree, analyzePerformance, Suspense, render, html, defineComponent,
 
   // Shortcuts
   h, div, span, p, button, input, a, img, form, ul, li, h1, h2, h3,

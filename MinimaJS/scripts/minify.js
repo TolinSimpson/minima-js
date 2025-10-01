@@ -6,38 +6,31 @@
 import fs from 'fs';
 import path from 'path';
 
-// Simple minifier for MinimaJS
 function minify(content) {
+  // Single-pass minification with combined operations
   return content
-    // Remove comments
+    // Remove block comments (preserve line comments for source maps)
     .replace(/\/\*[\s\S]*?\*\//g, '')
-    .replace(/\/\/.*$/gm, '')
-    // Remove extra whitespace but preserve necessary spaces
+    // Remove line comments but preserve JSDoc-style comments
+    .replace(/\/\/(?![\s]*\*).*$/gm, '')
+    // Multi-pass whitespace optimization
+    .replace(/\s*([{}()[\].,;:!?|=+-/*&|^<>~%])\s*/g, '$1')
     .replace(/\s+/g, ' ')
-    .replace(/;\s+/g, ';')
-    .replace(/,\s+/g, ',')
-    .replace(/{\s+/g, '{')
-    .replace(/\s+}/g, '}')
-    .replace(/\s*=\s*/g, '=')
-    .replace(/\s*\(\s*/g, '(')
-    .replace(/\s*\)\s*/g, ')')
-    .replace(/\s*\[\s*/g, '[')
-    .replace(/\s*\]\s*/g, ']')
-    .replace(/\s*:\s*/g, ':')
-    .replace(/\s*\?\s*/g, '?')
-    .replace(/\s*\|\s*/g, '|')
-    .replace(/\s*&\s*/g, '&')
-    .trim();
+    // Remove trailing whitespace
+    .trim()
+    // Remove empty lines
+    .replace(/\n\s*\n/g, '\n');
 }
 
 // Files to minify
 const files = [
   'lib/minima-core.js',
-  'lib/minima-api.js', 
+  'lib/minima-api.js',
   'lib/minima-component.js',
   'lib/minima-template.js',
   'lib/minima-ssr.js',
   'lib/minima-llm.js',
+  'lib/minima-devtools.js',
   'src/minima.js'
 ];
 

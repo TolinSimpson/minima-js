@@ -21,6 +21,12 @@ export type StateHook<T> = [T, StateSetter<T>];
 export type EffectCallback = () => void | (() => void);
 export type DependencyList = ReadonlyArray<any>;
 
+export type MemoHook<T> = T;
+export type CallbackHook<T extends (...args: any[]) => any> = T;
+export type TransitionHook = [boolean, (callback: () => void) => void];
+export type DeferredValueHook<T> = T;
+export type ResourceHook<T> = T;
+
 // Event types
 export interface DOMAttributes<T> {
   onClick?: (event: MouseEvent) => void;
@@ -57,6 +63,11 @@ export function useState<T>(initialState: T): StateHook<T>;
 export function useState<T = undefined>(): StateHook<T | undefined>;
 
 export function useEffect(effect: EffectCallback, deps?: DependencyList): void;
+export function useMemo<T>(factory: () => T, deps?: DependencyList): T;
+export function useCallback<T extends (...args: any[]) => any>(callback: T, deps?: DependencyList): T;
+export function useTransition(): TransitionHook;
+export function useDeferredValue<T>(value: T): T;
+export function useResource<T>(resourceFactory: () => T): T;
 
 export function render(vnode: VNode, container: Element): void;
 
@@ -116,6 +127,33 @@ export function memo<P>(
   Component: (props: P) => VNode,
   areEqual?: (prevProps: P, nextProps: P) => boolean
 ): (props: P) => VNode;
+
+// Suspense API
+export interface SuspenseProps {
+  children: VNode;
+  fallback: VNode;
+}
+
+export function Suspense(props: SuspenseProps): VNode;
+
+// DevTools API
+export interface DevToolsHook {
+  inspect: () => any;
+  logState: () => void;
+}
+
+export interface ProfilerHook {
+  getTimings: () => any;
+  measure: (label: string) => () => void;
+  mark: (label: string) => void;
+}
+
+export function useDevTools(componentName?: string): DevToolsHook;
+export function useProfiler(componentName?: string): ProfilerHook;
+export function inspectComponentTree(): void;
+export function analyzePerformance(): void;
+export function enableDevTools(): void;
+export function disableDevTools(): void;
 
 // SSR API
 export function renderToString(component: Function, props?: any): string;
@@ -232,6 +270,16 @@ declare const api: {
   createElement: typeof createElement;
   useState: typeof useState;
   useEffect: typeof useEffect;
+  useMemo: typeof useMemo;
+  useCallback: typeof useCallback;
+  useTransition: typeof useTransition;
+  useDeferredValue: typeof useDeferredValue;
+  useResource: typeof useResource;
+  useDevTools: typeof useDevTools;
+  useProfiler: typeof useProfiler;
+  inspectComponentTree: typeof inspectComponentTree;
+  analyzePerformance: typeof analyzePerformance;
+  Suspense: typeof Suspense;
   render: typeof render;
   html: typeof html;
   defineComponent: typeof defineComponent;

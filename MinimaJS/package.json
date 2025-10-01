@@ -36,6 +36,10 @@
     "./llm": {
       "import": "./lib/minima-llm.js",
       "production": "./dist/minima-llm.min.js"
+    },
+    "./devtools": {
+      "import": "./lib/minima-devtools.js",
+      "production": "./dist/minima-devtools.min.js"
     }
   },
   "files": [

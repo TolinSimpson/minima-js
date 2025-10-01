@@ -16,6 +16,16 @@ export {
   render
 } from '../lib/minima-core.js';
 
+// Optional Dev Tools (loaded separately)
+export {
+  useDevTools,
+  useProfiler,
+  inspectComponentTree,
+  analyzePerformance,
+  enableDevTools,
+  disableDevTools
+} from '../lib/minima-devtools.js';
+
 // XSS-Safe HTML Templates  
 export { 
   html, 

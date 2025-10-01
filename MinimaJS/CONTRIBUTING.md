@@ -19,6 +19,7 @@ MinimaJS/
 │   ├── minima-core.js   # Virtual DOM & hooks
 │   ├── minima-api.js    # Shorthand APIs  
 │   ├── minima-template.js # HTML templates
+│   ├── minima-devtools.js # Developer & Tools
 │   ├── minima-component.js # Advanced components
 │   ├── minima-ssr.js    # Server-side rendering
 │   └── minima-llm.js    # LLM-optimized APIs
