@@ -19,7 +19,7 @@ input{padding:8px;margin:4px;border:1px solid #ccc;border-radius:4px}
 
 <script type="module">
 // Import ultra-short API
-import { h, div, button, input, ul, li, state, effect, t, app, when, each, toggle, counter, formState, inputState } from '../src/minima.js';
+import { h, div, button, input, ul, li, useState, useEffect, html, app, when, each, toggle, counter, formState, inputState } from '@tolinsimpson/minimajs';
 
 // Counter (4 lines!)
 const Counter = () => {
@@ -29,7 +29,7 @@ const Counter = () => {
 
 // Todo App (8 lines!)
 const Todos = () => {
-  const [todos, setTodos] = state([]);
+  const [todos, setTodos] = useState([]);
   const [inputVal, setInput, onChange] = inputState('');
   const add = () => inputVal && (setTodos([...todos, inputVal]), setInput(''));
   return div({},
